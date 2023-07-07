@@ -14,9 +14,7 @@
 //! increment it.
 use {
     byteorder::{BigEndian, LittleEndian},
-    zerocopy::{
-        byteorder::U64, AsBytes, FromBytes, LayoutVerified, Unaligned, U16, U32,
-    },
+    zerocopy::{byteorder::U64, AsBytes, FromBytes, LayoutVerified, Unaligned, U16, U32},
 };
 
 fn upsert(db: &sled::Db) -> sled::Result<()> {
@@ -46,7 +44,10 @@ fn upsert(db: &sled::Db) -> sled::Result<()> {
         whatever: [u8; 16],
     }
 
-    let key = Key { a: U64::new(21), b: U64::new(890) };
+    let key = Key {
+        a: U64::new(21),
+        b: U64::new(890),
+    };
 
     // "UPSERT" functionality
     db.update_and_fetch(key.as_bytes(), |value_opt| {
@@ -80,7 +81,11 @@ fn upsert(db: &sled::Db) -> sled::Result<()> {
             println!("setting count to 0");
 
             Some(sled::IVec::from(
-                Value { count: U64::new(0), whatever: [0; 16] }.as_bytes(),
+                Value {
+                    count: U64::new(0),
+                    whatever: [0; 16],
+                }
+                .as_bytes(),
             ))
         }
     })?;
@@ -120,16 +125,22 @@ fn variable_lengths(db: &sled::Db) -> sled::Result<()> {
     let mut dog2000_value = vec![];
     dog2000_value.extend_from_slice(b"science zone");
     dog2000_value.extend_from_slice(
-        DogValue { woof_count: U32::new(666), postal_code: U16::new(42) }
-            .as_bytes(),
+        DogValue {
+            woof_count: U32::new(666),
+            postal_code: U16::new(42),
+        }
+        .as_bytes(),
     );
     dogs.insert("dog2000", dog2000_value)?;
 
     let mut zed_pup_value = vec![];
     zed_pup_value.extend_from_slice(b"bowling alley");
     zed_pup_value.extend_from_slice(
-        DogValue { woof_count: U32::new(32113231), postal_code: U16::new(0) }
-            .as_bytes(),
+        DogValue {
+            woof_count: U32::new(32113231),
+            postal_code: U16::new(0),
+        }
+        .as_bytes(),
     );
     dogs.insert("zed pup", zed_pup_value)?;
 
@@ -137,8 +148,11 @@ fn variable_lengths(db: &sled::Db) -> sled::Result<()> {
     let mut klaus_value = vec![];
     klaus_value.extend_from_slice(b"barf shop");
     klaus_value.extend_from_slice(
-        DogValue { woof_count: U32::new(0), postal_code: U16::new(12045) }
-            .as_bytes(),
+        DogValue {
+            woof_count: U32::new(0),
+            postal_code: U16::new(12045),
+        }
+        .as_bytes(),
     );
     dogs.insert("klaus", klaus_value)?;
 
