@@ -304,6 +304,7 @@ impl<NID: NodeId> LogIdList<NID> {
         self.key_log_ids.last()
     }
 
+    #[allow(dead_code)]
     pub(crate) fn key_log_ids(&self) -> &[LogId<NID>] {
         &self.key_log_ids
     }
