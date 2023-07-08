@@ -23,7 +23,8 @@ use crate::Vote;
 /// Commands to send to `RaftRuntime` to execute, to update the application state.
 #[derive(Debug)]
 pub(crate) enum Command<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     /// Becomes a leader, i.e., its `vote` is granted by a quorum.
     /// The runtime initializes leader data when receives this command.
@@ -95,7 +96,8 @@ where C: RaftTypeConfig
 }
 
 impl<C> From<sm::Command<C>> for Command<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     fn from(cmd: sm::Command<C>) -> Self {
         Self::StateMachine { command: cmd }
@@ -131,7 +133,8 @@ where
 }
 
 impl<C> Command<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     #[allow(dead_code)]
     #[rustfmt::skip]
@@ -183,10 +186,10 @@ where C: RaftTypeConfig
 }
 
 /// A condition to wait for before running a command.
-#[derive(Debug, Clone, Copy)]
-#[derive(PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Condition<NID>
-where NID: NodeId
+where
+    NID: NodeId,
 {
     /// Wait until the log is flushed to the disk.
     ///
@@ -208,9 +211,7 @@ where NID: NodeId
 }
 
 /// A command to send return value to the caller via a `oneshot::Sender`.
-#[derive(Debug)]
-#[derive(PartialEq, Eq)]
-#[derive(derive_more::From)]
+#[derive(Debug, PartialEq, Eq, derive_more::From)]
 pub(crate) enum Respond<NID, N>
 where
     NID: NodeId,
@@ -249,14 +250,16 @@ where
 
 #[derive(Debug)]
 pub(crate) struct ValueSender<T>
-where T: Debug + PartialEq + Eq
+where
+    T: Debug + PartialEq + Eq,
 {
     value: T,
     tx: oneshot::Sender<T>,
 }
 
 impl<T> PartialEq for ValueSender<T>
-where T: Debug + PartialEq + Eq
+where
+    T: Debug + PartialEq + Eq,
 {
     fn eq(&self, other: &Self) -> bool {
         self.value == other.value
@@ -266,7 +269,8 @@ where T: Debug + PartialEq + Eq
 impl<T> Eq for ValueSender<T> where T: Debug + PartialEq + Eq {}
 
 impl<T> ValueSender<T>
-where T: Debug + PartialEq + Eq
+where
+    T: Debug + PartialEq + Eq,
 {
     pub(crate) fn new(res: T, tx: oneshot::Sender<T>) -> Self {
         Self { value: res, tx }

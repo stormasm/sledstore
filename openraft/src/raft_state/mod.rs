@@ -26,7 +26,8 @@ pub(crate) mod snapshot_streaming;
 mod vote_state_reader;
 
 pub(crate) use io_state::IOState;
-#[allow(unused)] pub(crate) use io_state::LogIOId;
+#[allow(unused)]
+pub(crate) use io_state::LogIOId;
 
 #[cfg(test)]
 mod tests {
@@ -44,8 +45,7 @@ pub(crate) use vote_state_reader::VoteStateReader;
 pub(crate) use crate::raft_state::snapshot_streaming::StreamingState;
 
 /// A struct used to represent the raft state which a Raft node needs.
-#[derive(Clone, Debug)]
-#[derive(PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct RaftState<NID, N, I>
 where
     NID: NodeId,
@@ -218,7 +218,8 @@ where
 
     /// Return the accepted last log id of the current leader.
     pub(crate) fn accepted(&self) -> Option<&LogId<NID>> {
-        self.accepted.last_accepted_log_id(self.vote_ref().leader_id())
+        self.accepted
+            .last_accepted_log_id(self.vote_ref().leader_id())
     }
 
     /// Update the accepted log id for the current leader.
@@ -235,7 +236,11 @@ where
             self.accepted.leader_id()
         );
 
-        if accepted.as_ref() > self.accepted.last_accepted_log_id(self.vote_ref().leader_id()) {
+        if accepted.as_ref()
+            > self
+                .accepted
+                .last_accepted_log_id(self.vote_ref().leader_id())
+        {
             self.accepted = Accepted::new(*self.vote_ref().leader_id(), accepted);
         }
     }
@@ -243,7 +248,10 @@ where
     /// Append a list of `log_id`.
     ///
     /// The log ids in the input has to be continuous.
-    pub(crate) fn extend_log_ids_from_same_leader<'a, LID: RaftLogId<NID> + 'a>(&mut self, new_log_ids: &[LID]) {
+    pub(crate) fn extend_log_ids_from_same_leader<'a, LID: RaftLogId<NID> + 'a>(
+        &mut self,
+        new_log_ids: &[LID],
+    ) {
         self.log_ids.extend_from_same_leader(new_log_ids)
     }
 
@@ -254,7 +262,10 @@ where
     /// Update field `committed` if the input is greater.
     /// If updated, it returns the previous value in a `Some()`.
     #[tracing::instrument(level = "debug", skip_all)]
-    pub(crate) fn update_committed(&mut self, committed: &Option<LogId<NID>>) -> Option<Option<LogId<NID>>> {
+    pub(crate) fn update_committed(
+        &mut self,
+        committed: &Option<LogId<NID>>,
+    ) -> Option<Option<LogId<NID>>> {
         if committed.as_ref() > self.committed() {
             let prev = self.committed().copied();
 
@@ -288,7 +299,9 @@ where
     /// Find the first entry in the input that does not exist on local raft-log,
     /// by comparing the log id.
     pub(crate) fn first_conflicting_index<Ent>(&self, entries: &[Ent]) -> usize
-    where Ent: RaftLogId<NID> {
+    where
+        Ent: RaftLogId<NID>,
+    {
         let l = entries.len();
 
         for (i, ent) in entries.iter().enumerate() {

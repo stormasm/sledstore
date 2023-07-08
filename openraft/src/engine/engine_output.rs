@@ -7,7 +7,8 @@ use crate::RaftTypeConfig;
 /// The entry of output from Engine to the runtime.
 #[derive(Debug, Default)]
 pub(crate) struct EngineOutput<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     /// A Engine level sequence number for identifying a command.
     pub(crate) seq: CommandSeq,
@@ -17,7 +18,8 @@ where C: RaftTypeConfig
 }
 
 impl<C> EngineOutput<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     /// Generate the next command seq of an sm::Command.
     pub(crate) fn next_sm_seq(&mut self) -> CommandSeq {

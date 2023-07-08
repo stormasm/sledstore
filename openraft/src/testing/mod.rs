@@ -58,7 +58,9 @@ where
     let (tx, rx) = oneshot::channel();
     let cb = LogFlushed::new(Some(last_log_id), tx);
     log_store.append(entries, cb).await?;
-    rx.await.unwrap().map_err(|e| StorageIOError::write_logs(AnyError::error(e)))?;
+    rx.await
+        .unwrap()
+        .map_err(|e| StorageIOError::write_logs(AnyError::error(e)))?;
 
     Ok(())
 }

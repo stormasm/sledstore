@@ -21,8 +21,13 @@ impl Upgrade<crate::SnapshotMeta<u64, crate::EmptyNode>> for or07::SnapshotMeta 
     fn upgrade(self) -> crate::SnapshotMeta<u64, crate::EmptyNode> {
         unimplemented!("can not upgrade SnapshotMeta")
     }
-    fn try_upgrade(self) -> Result<crate::SnapshotMeta<u64, crate::EmptyNode>, (Self, &'static str)> {
-        Err((self, "v07 snapshot meta does not contain membership to upgrade"))
+    fn try_upgrade(
+        self,
+    ) -> Result<crate::SnapshotMeta<u64, crate::EmptyNode>, (Self, &'static str)> {
+        Err((
+            self,
+            "v07 snapshot meta does not contain membership to upgrade",
+        ))
     }
 }
 
@@ -30,9 +35,14 @@ impl Upgrade<crate::SnapshotMeta<u64, crate::EmptyNode>> for SnapshotMeta {
     fn upgrade(self) -> crate::SnapshotMeta<u64, crate::EmptyNode> {
         unimplemented!("can not upgrade SnapshotMeta")
     }
-    fn try_upgrade(self) -> Result<crate::SnapshotMeta<u64, crate::EmptyNode>, (Self, &'static str)> {
+    fn try_upgrade(
+        self,
+    ) -> Result<crate::SnapshotMeta<u64, crate::EmptyNode>, (Self, &'static str)> {
         if self.last_membership.is_none() {
-            Err((self, "v07 snapshot meta does not contain membership to upgrade"))
+            Err((
+                self,
+                "v07 snapshot meta does not contain membership to upgrade",
+            ))
         } else {
             Ok(crate::SnapshotMeta {
                 last_log_id: self.last_log_id.map(|lid| lid.upgrade()),

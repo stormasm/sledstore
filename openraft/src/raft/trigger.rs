@@ -32,7 +32,9 @@ where
     /// Returns error when RaftCore has [`Fatal`] error, e.g. shut down or having storage error.
     /// It is not affected by `Raft::enable_elect(false)`.
     pub async fn elect(&self) -> Result<(), Fatal<C::NodeId>> {
-        self.raft_inner.send_external_command(ExternalCommand::Elect, "trigger_elect").await
+        self.raft_inner
+            .send_external_command(ExternalCommand::Elect, "trigger_elect")
+            .await
     }
 
     /// Trigger a heartbeat at once and return at once.
@@ -40,14 +42,18 @@ where
     /// Returns error when RaftCore has [`Fatal`] error, e.g. shut down or having storage error.
     /// It is not affected by `Raft::enable_heartbeat(false)`.
     pub async fn heartbeat(&self) -> Result<(), Fatal<C::NodeId>> {
-        self.raft_inner.send_external_command(ExternalCommand::Heartbeat, "trigger_heartbeat").await
+        self.raft_inner
+            .send_external_command(ExternalCommand::Heartbeat, "trigger_heartbeat")
+            .await
     }
 
     /// Trigger to build a snapshot at once and return at once.
     ///
     /// Returns error when RaftCore has [`Fatal`] error, e.g. shut down or having storage error.
     pub async fn snapshot(&self) -> Result<(), Fatal<C::NodeId>> {
-        self.raft_inner.send_external_command(ExternalCommand::Snapshot, "trigger_snapshot").await
+        self.raft_inner
+            .send_external_command(ExternalCommand::Snapshot, "trigger_snapshot")
+            .await
     }
 
     /// Initiate the log purge up to and including the given `upto` log index.
@@ -66,6 +72,8 @@ where
     ///
     /// [`max_in_snapshot_log_to_keep`]: `crate::Config::max_in_snapshot_log_to_keep`
     pub async fn purge_log(&self, upto: u64) -> Result<(), Fatal<C::NodeId>> {
-        self.raft_inner.send_external_command(ExternalCommand::PurgeLog { upto }, "purge_log").await
+        self.raft_inner
+            .send_external_command(ExternalCommand::PurgeLog { upto }, "purge_log")
+            .await
     }
 }

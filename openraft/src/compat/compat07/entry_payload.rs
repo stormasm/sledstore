@@ -30,8 +30,8 @@ where
     }
 }
 
-impl<C: crate::RaftTypeConfig<NodeId = u64, Node = crate::EmptyNode>> Upgrade<crate::EntryPayload<C>>
-    for EntryPayload<C>
+impl<C: crate::RaftTypeConfig<NodeId = u64, Node = crate::EmptyNode>>
+    Upgrade<crate::EntryPayload<C>> for EntryPayload<C>
 {
     fn upgrade(self) -> crate::EntryPayload<C> {
         match self {

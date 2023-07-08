@@ -4,9 +4,7 @@ use crate::LogId;
 use crate::NodeId;
 use crate::Vote;
 
-#[derive(Debug, Clone, Copy)]
-#[derive(Default)]
-#[derive(PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub(crate) struct LogIOId<NID: NodeId> {
     pub(crate) leader_id: LeaderId<NID>,
     pub(crate) log_id: Option<LogId<NID>>,
@@ -17,9 +15,7 @@ pub(crate) struct LogIOId<NID: NodeId> {
 ///
 /// These states are updated only when the io complete and thus may fall behind to the state stored
 /// in [`RaftState`](`crate::RaftState`),.
-#[derive(Debug, Clone, Copy)]
-#[derive(Default)]
-#[derive(PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub(crate) struct IOState<NID: NodeId> {
     /// Whether it is building a snapshot
     building_snapshot: bool,
@@ -66,7 +62,11 @@ impl<NID: NodeId> IOState<NID> {
     }
 
     pub(crate) fn update_applied(&mut self, log_id: Option<LogId<NID>>) {
-        tracing::debug!(applied = display(DisplayOption(&log_id)), "{}", func_name!());
+        tracing::debug!(
+            applied = display(DisplayOption(&log_id)),
+            "{}",
+            func_name!()
+        );
 
         // TODO: should we update flushed if applied is newer?
         debug_assert!(

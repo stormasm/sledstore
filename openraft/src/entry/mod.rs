@@ -16,9 +16,14 @@ pub use traits::RaftEntry;
 pub use traits::RaftPayload;
 
 /// A Raft log entry.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 pub struct Entry<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     pub log_id: LogId<C::NodeId>,
 
@@ -40,15 +45,20 @@ where
 }
 
 impl<C> Debug for Entry<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Entry").field("log_id", &self.log_id).field("payload", &self.payload).finish()
+        f.debug_struct("Entry")
+            .field("log_id", &self.log_id)
+            .field("payload", &self.payload)
+            .finish()
     }
 }
 
 impl<C> Default for Entry<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     fn default() -> Self {
         Self {
@@ -69,7 +79,8 @@ where
 }
 
 impl<C> AsRef<Entry<C>> for Entry<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     fn as_ref(&self) -> &Entry<C> {
         self
@@ -77,7 +88,8 @@ where C: RaftTypeConfig
 }
 
 impl<C> fmt::Display for Entry<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}:{}", self.log_id, self.payload.summary())
@@ -85,7 +97,8 @@ where C: RaftTypeConfig
 }
 
 impl<C> MessageSummary<Entry<C>> for Entry<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     fn summary(&self) -> String {
         format!("{}:{}", self.log_id, self.payload.summary())
@@ -93,7 +106,8 @@ where C: RaftTypeConfig
 }
 
 impl<C> RaftPayload<C::NodeId, C::Node> for Entry<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     fn is_blank(&self) -> bool {
         self.payload.is_blank()
@@ -105,7 +119,8 @@ where C: RaftTypeConfig
 }
 
 impl<C> RaftLogId<C::NodeId> for Entry<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     fn get_log_id(&self) -> &LogId<C::NodeId> {
         &self.log_id
@@ -117,7 +132,8 @@ where C: RaftTypeConfig
 }
 
 impl<C> RaftEntry<C::NodeId, C::Node> for Entry<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     fn new_blank(log_id: LogId<C::NodeId>) -> Self {
         Self {
@@ -135,7 +151,8 @@ where C: RaftTypeConfig
 }
 
 impl<C> FromAppData<C::D> for Entry<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     fn from_app_data(d: C::D) -> Self {
         Entry {

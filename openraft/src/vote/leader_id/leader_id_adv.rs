@@ -11,11 +11,15 @@ use crate::NodeId;
 /// Under this dirty simplification, a `Leader` is actually identified by `(term,
 /// voted_for:Option<node_id>)`.
 /// By introducing `LeaderId {term, node_id}`, things become easier to understand.
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
-#[derive(PartialOrd, Ord)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 pub struct LeaderId<NID>
-where NID: NodeId
+where
+    NID: NodeId,
 {
     pub term: u64,
     pub node_id: NID,

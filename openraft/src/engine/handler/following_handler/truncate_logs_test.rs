@@ -65,7 +65,9 @@ fn test_truncate_logs_since_3() -> anyhow::Result<()> {
     assert_eq!(
         vec![
             //
-            Command::DeleteConflictLog { since: log_id(2, 1, 3) },
+            Command::DeleteConflictLog {
+                since: log_id(2, 1, 3)
+            },
         ],
         eng.output.take_commands()
     );
@@ -80,7 +82,10 @@ fn test_truncate_logs_since_4() -> anyhow::Result<()> {
     eng.following_handler().truncate_logs(4);
 
     assert_eq!(Some(&log_id(2, 1, 3)), eng.state.last_log_id());
-    assert_eq!(&[log_id(2, 1, 2), log_id(2, 1, 3)], eng.state.log_ids.key_log_ids());
+    assert_eq!(
+        &[log_id(2, 1, 2), log_id(2, 1, 3)],
+        eng.state.log_ids.key_log_ids()
+    );
     assert_eq!(
         MembershipState::new(
             Arc::new(EffectiveMembership::new(Some(log_id(1, 1, 1)), m01())),
@@ -91,7 +96,9 @@ fn test_truncate_logs_since_4() -> anyhow::Result<()> {
     assert_eq!(ServerState::Follower, eng.state.server_state);
 
     assert_eq!(
-        vec![Command::DeleteConflictLog { since: log_id(4, 1, 4) }],
+        vec![Command::DeleteConflictLog {
+            since: log_id(4, 1, 4)
+        }],
         eng.output.take_commands()
     );
 
@@ -105,9 +112,14 @@ fn test_truncate_logs_since_5() -> anyhow::Result<()> {
     eng.following_handler().truncate_logs(5);
 
     assert_eq!(Some(&log_id(4, 1, 4)), eng.state.last_log_id());
-    assert_eq!(&[log_id(2, 1, 2), log_id(4, 1, 4)], eng.state.log_ids.key_log_ids());
     assert_eq!(
-        vec![Command::DeleteConflictLog { since: log_id(4, 1, 5) }],
+        &[log_id(2, 1, 2), log_id(4, 1, 4)],
+        eng.state.log_ids.key_log_ids()
+    );
+    assert_eq!(
+        vec![Command::DeleteConflictLog {
+            since: log_id(4, 1, 5)
+        }],
         eng.output.take_commands()
     );
 
@@ -126,7 +138,9 @@ fn test_truncate_logs_since_6() -> anyhow::Result<()> {
         eng.state.log_ids.key_log_ids()
     );
     assert_eq!(
-        vec![Command::DeleteConflictLog { since: log_id(4, 1, 6) }],
+        vec![Command::DeleteConflictLog {
+            since: log_id(4, 1, 6)
+        }],
         eng.output.take_commands()
     );
 
@@ -177,11 +191,16 @@ fn test_truncate_logs_revert_effective_membership() -> anyhow::Result<()> {
     eng.following_handler().truncate_logs(4);
 
     assert_eq!(Some(&log_id(2, 1, 3)), eng.state.last_log_id());
-    assert_eq!(&[log_id(2, 1, 2), log_id(2, 1, 3)], eng.state.log_ids.key_log_ids());
+    assert_eq!(
+        &[log_id(2, 1, 2), log_id(2, 1, 3)],
+        eng.state.log_ids.key_log_ids()
+    );
     assert_eq!(
         vec![
             //
-            Command::DeleteConflictLog { since: log_id(4, 1, 4) },
+            Command::DeleteConflictLog {
+                since: log_id(4, 1, 4)
+            },
         ],
         eng.output.take_commands()
     );

@@ -40,7 +40,10 @@ fn eng() -> Engine<UTConfig> {
     eng.state.server_state = ServerState::Candidate;
     eng.state
         .membership_state
-        .set_effective(Arc::new(EffectiveMembership::new(Some(log_id(1, 1, 1)), m01())));
+        .set_effective(Arc::new(EffectiveMembership::new(
+            Some(log_id(1, 1, 1)),
+            m01(),
+        )));
 
     eng.vote_handler().become_leading();
     eng
@@ -52,7 +55,9 @@ fn test_accept_vote_reject_smaller_vote() -> anyhow::Result<()> {
     let mut eng = eng();
 
     let (tx, _rx) = oneshot::channel();
-    let resp = eng.vote_handler().accept_vote(&Vote::new(1, 2), tx, |_state, _err| mk_res());
+    let resp = eng
+        .vote_handler()
+        .accept_vote(&Vote::new(1, 2), tx, |_state, _err| mk_res());
 
     assert!(resp.is_none());
 
@@ -77,12 +82,16 @@ fn test_accept_vote_granted_greater_vote() -> anyhow::Result<()> {
     let mut eng = eng();
 
     let (tx, _rx) = oneshot::channel();
-    let resp = eng.vote_handler().accept_vote(&Vote::new(3, 3), tx, |_state, _err| mk_res());
+    let resp = eng
+        .vote_handler()
+        .accept_vote(&Vote::new(3, 3), tx, |_state, _err| mk_res());
 
     assert!(resp.is_some());
 
     assert_eq!(
-        vec![Command::SaveVote { vote: Vote::new(3, 3) },],
+        vec![Command::SaveVote {
+            vote: Vote::new(3, 3)
+        },],
         eng.output.take_commands()
     );
 

@@ -2,8 +2,13 @@ use crate::log_id::LogIndexOptionExt;
 
 /// Calculate the distance between the matched log index on a replication target and local last log
 /// index
-pub(crate) fn replication_lag(matched_log_index: &Option<u64>, last_log_index: &Option<u64>) -> u64 {
-    last_log_index.next_index().saturating_sub(matched_log_index.next_index())
+pub(crate) fn replication_lag(
+    matched_log_index: &Option<u64>,
+    last_log_index: &Option<u64>,
+) -> u64 {
+    last_log_index
+        .next_index()
+        .saturating_sub(matched_log_index.next_index())
 }
 
 #[cfg(test)]

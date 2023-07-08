@@ -24,7 +24,8 @@ pub struct ClientWriteResponse<C: RaftTypeConfig> {
 }
 
 impl<C: RaftTypeConfig> Debug for ClientWriteResponse<C>
-where C::R: Debug
+where
+    C::R: Debug,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ClientWriteResponse")

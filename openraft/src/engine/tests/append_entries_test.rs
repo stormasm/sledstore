@@ -157,7 +157,9 @@ fn test_append_entries_prev_log_id_conflict() -> anyhow::Result<()> {
             Command::SaveVote {
                 vote: Vote::new_committed(2, 1)
             },
-            Command::DeleteConflictLog { since: log_id(1, 1, 2) },
+            Command::DeleteConflictLog {
+                since: log_id(1, 1, 2)
+            },
         ],
         eng.output.take_commands()
     );
@@ -169,10 +171,11 @@ fn test_append_entries_prev_log_id_conflict() -> anyhow::Result<()> {
 fn test_append_entries_prev_log_id_is_committed() -> anyhow::Result<()> {
     let mut eng = eng();
 
-    let res = eng.append_entries(&Vote::new_committed(2, 1), Some(log_id(0, 1, 0)), vec![
-        blank_ent(1, 1, 1),
-        blank_ent(2, 1, 2),
-    ]);
+    let res = eng.append_entries(
+        &Vote::new_committed(2, 1),
+        Some(log_id(0, 1, 0)),
+        vec![blank_ent(1, 1, 1), blank_ent(2, 1, 2)],
+    );
 
     assert_eq!(Ok(()), res);
     assert_eq!(
@@ -197,7 +200,9 @@ fn test_append_entries_prev_log_id_is_committed() -> anyhow::Result<()> {
             Command::SaveVote {
                 vote: Vote::new_committed(2, 1)
             },
-            Command::DeleteConflictLog { since: log_id(1, 1, 2) },
+            Command::DeleteConflictLog {
+                since: log_id(1, 1, 2)
+            },
             Command::AppendInputEntries {
                 entries: vec![blank_ent(2, 1, 2)]
             },
@@ -214,10 +219,11 @@ fn test_append_entries_prev_log_id_not_exists() -> anyhow::Result<()> {
     eng.state.vote = UTime::new(TokioInstant::now(), Vote::new(1, 2));
     eng.vote_handler().become_leading();
 
-    let res = eng.append_entries(&Vote::new_committed(2, 1), Some(log_id(2, 1, 4)), vec![
-        blank_ent(2, 1, 5),
-        blank_ent(2, 1, 6),
-    ]);
+    let res = eng.append_entries(
+        &Vote::new_committed(2, 1),
+        Some(log_id(2, 1, 4)),
+        vec![blank_ent(2, 1, 5), blank_ent(2, 1, 6)],
+    );
 
     assert_eq!(
         Err(RejectAppendEntries::ByConflictingLogId {
@@ -262,10 +268,14 @@ fn test_append_entries_conflict() -> anyhow::Result<()> {
     // It is no longer a member, change to learner
     let mut eng = eng();
 
-    let resp = eng.append_entries(&Vote::new_committed(2, 1), Some(log_id(1, 1, 1)), vec![
-        blank_ent(1, 1, 2),
-        Entry::new_membership(log_id(3, 1, 3), m34()),
-    ]);
+    let resp = eng.append_entries(
+        &Vote::new_committed(2, 1),
+        Some(log_id(1, 1, 1)),
+        vec![
+            blank_ent(1, 1, 2),
+            Entry::new_membership(log_id(3, 1, 3), m34()),
+        ],
+    );
 
     assert_eq!(Ok(()), resp);
     assert_eq!(
@@ -290,7 +300,9 @@ fn test_append_entries_conflict() -> anyhow::Result<()> {
             Command::SaveVote {
                 vote: Vote::new_committed(2, 1)
             },
-            Command::DeleteConflictLog { since: log_id(2, 1, 3) },
+            Command::DeleteConflictLog {
+                since: log_id(2, 1, 3)
+            },
             Command::AppendInputEntries {
                 entries: vec![Entry::new_membership(log_id(3, 1, 3), m34())]
             },

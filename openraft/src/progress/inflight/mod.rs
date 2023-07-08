@@ -1,4 +1,5 @@
-#[cfg(test)] mod tests;
+#[cfg(test)]
+mod tests;
 
 use std::error::Error;
 use std::fmt::Display;
@@ -11,8 +12,7 @@ use crate::LogIdOptionExt;
 use crate::MessageSummary;
 use crate::NodeId;
 
-#[derive(Debug)]
-#[derive(thiserror::Error)]
+#[derive(Debug, thiserror::Error)]
 pub(crate) enum InflightError {
     #[error("got invalid request id, mine={mine:?}, received={received}")]
     InvalidRequestId { mine: Option<u64>, received: u64 },
@@ -28,8 +28,7 @@ impl InflightError {
 ///
 /// If inflight data is non-None, it's waiting for responses from a follower/learner.
 /// The follower/learner respond with `ack()` or `conflict()` to update the state of inflight data.
-#[derive(Clone, Copy, Debug)]
-#[derive(PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum Inflight<NID: NodeId> {
     None,
 
@@ -55,7 +54,9 @@ impl<NID: NodeId> Validate for Inflight<NID> {
     fn validate(&self) -> Result<(), Box<dyn Error>> {
         match self {
             Inflight::None => Ok(()),
-            Inflight::Logs { log_id_range: r, .. } => r.validate(),
+            Inflight::Logs {
+                log_id_range: r, ..
+            } => r.validate(),
             Inflight::Snapshot { .. } => Ok(()),
         }
     }
@@ -67,7 +68,10 @@ impl<NID: NodeId> Display for Inflight<NID> {
             Inflight::None => {
                 write!(f, "None")
             }
-            Inflight::Logs { id, log_id_range: l } => {
+            Inflight::Logs {
+                id,
+                log_id_range: l,
+            } => {
                 write!(f, "Logs(id={}):{}", id, l)
             }
             Inflight::Snapshot {
@@ -106,7 +110,10 @@ impl<NID: NodeId> Inflight<NID> {
     pub(crate) fn with_id(self, id: u64) -> Self {
         match self {
             Inflight::None => Inflight::None,
-            Inflight::Logs { id: _, log_id_range } => Inflight::Logs { id, log_id_range },
+            Inflight::Logs {
+                id: _,
+                log_id_range,
+            } => Inflight::Logs { id, log_id_range },
             Inflight::Snapshot { id: _, last_log_id } => Inflight::Snapshot { id, last_log_id },
         }
     }
@@ -166,7 +173,11 @@ impl<NID: NodeId> Inflight<NID> {
     }
 
     /// Update inflight state when log upto `upto` is acknowledged by a follower/learner.
-    pub(crate) fn ack(&mut self, request_id: u64, upto: Option<LogId<NID>>) -> Result<(), InflightError> {
+    pub(crate) fn ack(
+        &mut self,
+        request_id: u64,
+        upto: Option<LogId<NID>>,
+    ) -> Result<(), InflightError> {
         let res = self.assert_my_id(request_id);
         if let Err(e) = &res {
             tracing::error!("inflight ack error: {}", e);
@@ -213,7 +224,10 @@ impl<NID: NodeId> Inflight<NID> {
                 debug_assert_eq!(Some(conflict), logs.prev_log_id.index());
                 *self = Inflight::None
             }
-            Inflight::Snapshot { id: _, last_log_id: _ } => {
+            Inflight::Snapshot {
+                id: _,
+                last_log_id: _,
+            } => {
                 unreachable!("sending snapshot should not conflict");
             }
         };

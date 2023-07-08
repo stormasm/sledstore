@@ -7,7 +7,8 @@ use crate::StorageError;
 /// The Ok part of a state machine command result.
 #[derive(Debug)]
 pub(crate) enum Response<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     /// Build a snapshot, it returns result via the universal RaftCore response channel.
     BuildSnapshot(SnapshotMeta<C::NodeId, C::Node>),
@@ -29,7 +30,8 @@ where C: RaftTypeConfig
 /// Container of result of a command.
 #[derive(Debug)]
 pub(crate) struct CommandResult<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     #[allow(dead_code)]
     pub(crate) command_seq: CommandSeq,
@@ -37,9 +39,16 @@ where C: RaftTypeConfig
 }
 
 impl<C> CommandResult<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
-    pub(crate) fn new(command_seq: CommandSeq, result: Result<Response<C>, StorageError<C::NodeId>>) -> Self {
-        Self { command_seq, result }
+    pub(crate) fn new(
+        command_seq: CommandSeq,
+        result: Result<Response<C>, StorageError<C::NodeId>>,
+    ) -> Self {
+        Self {
+            command_seq,
+            result,
+        }
     }
 }

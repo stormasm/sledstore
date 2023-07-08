@@ -62,7 +62,9 @@ fn test_initialize_single_node() -> anyhow::Result<()> {
                 // When update the effective membership, the engine set it to Follower.
                 // But when initializing, it will switch to Candidate at once, in the last output
                 // command.
-                Command::SaveVote { vote: Vote::new(1, 1) },
+                Command::SaveVote {
+                    vote: Vote::new(1, 1)
+                },
                 // TODO: duplicated SaveVote: one is emitted by elect(), the second is emitted when
                 // the node becomes       leader.
                 Command::SaveVote {
@@ -135,7 +137,9 @@ fn test_initialize() -> anyhow::Result<()> {
                 // When update the effective membership, the engine set it to Follower.
                 // But when initializing, it will switch to Candidate at once, in the last output
                 // command.
-                Command::SaveVote { vote: Vote::new(1, 1) },
+                Command::SaveVote {
+                    vote: Vote::new(1, 1)
+                },
                 Command::SendVote {
                     vote_req: VoteRequest {
                         vote: Vote::new(1, 1),

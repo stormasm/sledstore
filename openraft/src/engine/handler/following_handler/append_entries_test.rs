@@ -26,7 +26,9 @@ fn eng() -> Engine<UTConfig> {
     eng.state.enable_validate = false; // Disable validation for incomplete state
 
     eng.config.id = 2;
-    eng.state.vote.update(TokioInstant::now(), Vote::new_committed(2, 1));
+    eng.state
+        .vote
+        .update(TokioInstant::now(), Vote::new_committed(2, 1));
     eng.state.log_ids.append(log_id(1, 1, 1));
     eng.state.log_ids.append(log_id(2, 1, 3));
     eng.state.membership_state = MembershipState::new(
@@ -41,11 +43,14 @@ fn eng() -> Engine<UTConfig> {
 fn test_follower_append_entries_update_accepted() -> anyhow::Result<()> {
     let mut eng = eng();
 
-    eng.following_handler().append_entries(Some(log_id(2, 1, 3)), vec![
-        //
-        blank_ent(3, 1, 4),
-        blank_ent(3, 1, 5),
-    ]);
+    eng.following_handler().append_entries(
+        Some(log_id(2, 1, 3)),
+        vec![
+            //
+            blank_ent(3, 1, 4),
+            blank_ent(3, 1, 5),
+        ],
+    );
 
     assert_eq!(
         &[
@@ -60,10 +65,13 @@ fn test_follower_append_entries_update_accepted() -> anyhow::Result<()> {
 
     // Update again, accept should not decrease.
 
-    eng.following_handler().append_entries(Some(log_id(2, 1, 3)), vec![
-        //
-        blank_ent(3, 1, 4),
-    ]);
+    eng.following_handler().append_entries(
+        Some(log_id(2, 1, 3)),
+        vec![
+            //
+            blank_ent(3, 1, 4),
+        ],
+    );
 
     assert_eq!(Some(&log_id(3, 1, 5)), eng.state.last_log_id());
     assert_eq!(Some(&log_id(3, 1, 5)), eng.state.accepted());

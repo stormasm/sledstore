@@ -19,7 +19,8 @@ use std::slice::Iter;
 use std::slice::IterMut;
 
 // TODO: remove it
-#[allow(unused_imports)] pub(crate) use inflight::Inflight;
+#[allow(unused_imports)]
+pub(crate) use inflight::Inflight;
 
 use crate::quorum::QuorumSet;
 
@@ -41,7 +42,8 @@ where
     /// It returns Err(committed) if the `id` is not found.
     /// The provided function `f` update the value of `id`.
     fn update_with<F>(&mut self, id: &ID, f: F) -> Result<&P, &P>
-    where F: FnOnce(&mut V);
+    where
+        F: FnOnce(&mut V);
 
     /// Update one of the scalar value and re-calculate the committed value.
     ///
@@ -88,8 +90,7 @@ where
 /// A Progress implementation with vector as storage.
 ///
 /// Suitable for small quorum set.
-#[derive(Clone, Debug)]
-#[derive(PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub(crate) struct VecProgress<ID, V, P, QS>
 where
     ID: 'static,
@@ -143,8 +144,7 @@ where
     }
 }
 
-#[derive(Clone, Debug, Default)]
-#[derive(PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub(crate) struct Stat {
     update_count: u64,
     move_count: u64,
@@ -159,8 +159,15 @@ where
     P: PartialOrd + Ord + Copy + 'static,
     QS: QuorumSet<ID>,
 {
-    pub(crate) fn new(quorum_set: QS, learner_ids: impl IntoIterator<Item = ID>, default_v: V) -> Self {
-        let mut vector = quorum_set.ids().map(|id| (id, default_v)).collect::<Vec<_>>();
+    pub(crate) fn new(
+        quorum_set: QS,
+        learner_ids: impl IntoIterator<Item = ID>,
+        default_v: V,
+    ) -> Self {
+        let mut vector = quorum_set
+            .ids()
+            .map(|id| (id, default_v))
+            .collect::<Vec<_>>();
 
         let voter_count = vector.len();
 
@@ -253,7 +260,9 @@ where
     ///      1   3   5
     /// ```
     fn update_with<F>(&mut self, id: &ID, f: F) -> Result<&P, &P>
-    where F: FnOnce(&mut V) {
+    where
+        F: FnOnce(&mut V),
+    {
         self.stat.update_count += 1;
 
         let index = match self.index(id) {
@@ -465,7 +474,11 @@ mod t {
                 *id,
                 *v
             );
-            assert_eq!(*want_new_index, got, "{}-th case: idx:{}, v:{}", ith, *id, *v);
+            assert_eq!(
+                *want_new_index, got,
+                "{}-th case: idx:{}, v:{}",
+                ith, *id, *v
+            );
         }
         Ok(())
     }
@@ -492,7 +505,14 @@ mod t {
         // TODO: test update_with
         for (ith, ((id, v), want_committed)) in cases.iter().enumerate() {
             let got = progress.update_with(id, |x| *x = *v);
-            assert_eq!(want_committed.clone(), got, "{}-th case: id:{}, v:{}", ith, id, v);
+            assert_eq!(
+                want_committed.clone(),
+                got,
+                "{}-th case: id:{}, v:{}",
+                ith,
+                id,
+                v
+            );
         }
         Ok(())
     }
@@ -512,10 +532,17 @@ mod t {
 
     #[test]
     fn vec_progress_update_struct_value() -> anyhow::Result<()> {
-        let pv = |p, user_data| ProgressEntry { progress: p, user_data };
+        let pv = |p, user_data| ProgressEntry {
+            progress: p,
+            user_data,
+        };
 
         let quorum_set: Vec<u64> = vec![0, 1, 2];
-        let mut progress = VecProgress::<u64, ProgressEntry, u64, _>::new(quorum_set, [3].into_iter(), pv(0, "foo"));
+        let mut progress = VecProgress::<u64, ProgressEntry, u64, _>::new(
+            quorum_set,
+            [3].into_iter(),
+            pv(0, "foo"),
+        );
 
         // initial: 0,0,0,0
         let cases = vec![
@@ -527,7 +554,14 @@ mod t {
 
         for (ith, (id, v, want_committed)) in cases.iter().enumerate() {
             let got = progress.update(id, *v);
-            assert_eq!(want_committed.clone(), got, "{}-th case: id:{}, v:{:?}", ith, id, v);
+            assert_eq!(
+                want_committed.clone(),
+                got,
+                "{}-th case: id:{}, v:{:?}",
+                ith,
+                id,
+                v
+            );
         }
 
         // Check progress data
@@ -588,7 +622,11 @@ mod t {
 
         let p345 = p012_345.upgrade_quorum_set(qs345, &[1], 0);
 
-        assert_eq!(&8, p345.granted(), "shrink quorum set, greater value becomes committed");
+        assert_eq!(
+            &8,
+            p345.granted(),
+            "shrink quorum set, greater value becomes committed"
+        );
         assert_eq!(&6, p345.get(&1), "inherit voter progress");
 
         Ok(())

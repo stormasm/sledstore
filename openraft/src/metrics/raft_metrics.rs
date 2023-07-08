@@ -14,7 +14,11 @@ use crate::Vote;
 
 /// A set of metrics describing the current state of a Raft node.
 #[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 pub struct RaftMetrics<NID, N>
 where
     NID: NodeId,
@@ -98,7 +102,12 @@ where
             DisplayOption(&self.purged),
             self.replication
                 .as_ref()
-                .map(|x| { x.iter().map(|(k, v)| format!("{}:{}", k, DisplayOption(v))).collect::<Vec<_>>().join(",") })
+                .map(|x| {
+                    x.iter()
+                        .map(|(k, v)| format!("{}:{}", k, DisplayOption(v)))
+                        .collect::<Vec<_>>()
+                        .join(",")
+                })
                 .unwrap_or_default(),
         )?;
 

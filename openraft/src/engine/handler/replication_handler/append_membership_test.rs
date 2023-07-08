@@ -60,7 +60,8 @@ fn test_leader_append_membership_for_leader() -> anyhow::Result<()> {
     eng.state.vote = UTime::new(TokioInstant::now(), Vote::new_committed(2, 2));
     eng.vote_handler().become_leading();
 
-    eng.replication_handler().append_membership(&log_id(3, 1, 4), &m34());
+    eng.replication_handler()
+        .append_membership(&log_id(3, 1, 4), &m34());
 
     assert_eq!(
         MembershipState::new(
@@ -87,7 +88,13 @@ fn test_leader_append_membership_for_leader() -> anyhow::Result<()> {
     );
 
     assert!(
-        eng.internal_server_state.leading().unwrap().progress.get(&4).matching.is_none(),
+        eng.internal_server_state
+            .leading()
+            .unwrap()
+            .progress
+            .get(&4)
+            .matching
+            .is_none(),
         "exists, but it is a None"
     );
 
@@ -112,7 +119,10 @@ fn test_leader_append_membership_update_learner_process() -> anyhow::Result<()> 
     eng.state.vote = UTime::new(TokioInstant::now(), Vote::new_committed(2, 2));
     eng.state
         .membership_state
-        .set_effective(Arc::new(EffectiveMembership::new(Some(log_id(2, 1, 3)), m23_45())));
+        .set_effective(Arc::new(EffectiveMembership::new(
+            Some(log_id(2, 1, 3)),
+            m23_45(),
+        )));
     eng.vote_handler().become_leading();
 
     if let Some(l) = &mut eng.internal_server_state.leading_mut() {
@@ -134,7 +144,8 @@ fn test_leader_append_membership_update_learner_process() -> anyhow::Result<()> 
         unreachable!("leader should not be None");
     }
 
-    eng.replication_handler().append_membership(&log_id(3, 1, 4), &m4_356());
+    eng.replication_handler()
+        .append_membership(&log_id(3, 1, 4), &m4_356());
 
     assert_eq!(
         MembershipState::new(
@@ -147,7 +158,9 @@ fn test_leader_append_membership_update_learner_process() -> anyhow::Result<()> 
     if let Some(l) = &mut eng.internal_server_state.leading_mut() {
         assert_eq!(
             &ProgressEntry::new(Some(log_id(1, 1, 4)))
-                .with_inflight(Inflight::logs(Some(log_id(1, 1, 4)), Some(log_id(5, 1, 10))).with_id(1))
+                .with_inflight(
+                    Inflight::logs(Some(log_id(1, 1, 4)), Some(log_id(5, 1, 10))).with_id(1)
+                )
                 .with_curr_inflight_id(1),
             l.progress.get(&4),
             "learner-4 progress should be transferred to voter progress"
@@ -155,7 +168,9 @@ fn test_leader_append_membership_update_learner_process() -> anyhow::Result<()> 
 
         assert_eq!(
             &ProgressEntry::new(Some(log_id(1, 1, 3)))
-                .with_inflight(Inflight::logs(Some(log_id(1, 1, 3)), Some(log_id(5, 1, 10))).with_id(1))
+                .with_inflight(
+                    Inflight::logs(Some(log_id(1, 1, 3)), Some(log_id(5, 1, 10))).with_id(1)
+                )
                 .with_curr_inflight_id(1),
             l.progress.get(&3),
             "voter-3 progress should be transferred to learner progress"
@@ -163,7 +178,9 @@ fn test_leader_append_membership_update_learner_process() -> anyhow::Result<()> 
 
         assert_eq!(
             &ProgressEntry::new(Some(log_id(1, 1, 5)))
-                .with_inflight(Inflight::logs(Some(log_id(1, 1, 5)), Some(log_id(5, 1, 10))).with_id(1))
+                .with_inflight(
+                    Inflight::logs(Some(log_id(1, 1, 5)), Some(log_id(5, 1, 10))).with_id(1)
+                )
                 .with_curr_inflight_id(1),
             l.progress.get(&5),
             "learner-5 has previous value"

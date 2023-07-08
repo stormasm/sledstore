@@ -29,7 +29,10 @@ fn eng() -> Engine<UTConfig> {
     eng.state.server_state = ServerState::Candidate;
     eng.state
         .membership_state
-        .set_effective(Arc::new(EffectiveMembership::new(Some(log_id(1, 1, 1)), m01())));
+        .set_effective(Arc::new(EffectiveMembership::new(
+            Some(log_id(1, 1, 1)),
+            m01(),
+        )));
 
     eng.vote_handler().become_leading();
     eng
@@ -120,14 +123,17 @@ fn test_handle_message_vote_granted_greater_vote() -> anyhow::Result<()> {
 
     assert_eq!(ServerState::Follower, eng.state.server_state);
     assert_eq!(
-        vec![Command::SaveVote { vote: Vote::new(3, 1) },],
+        vec![Command::SaveVote {
+            vote: Vote::new(3, 1)
+        },],
         eng.output.take_commands()
     );
     Ok(())
 }
 
 #[test]
-fn test_handle_message_vote_granted_follower_learner_does_not_emit_update_server_state_cmd() -> anyhow::Result<()> {
+fn test_handle_message_vote_granted_follower_learner_does_not_emit_update_server_state_cmd(
+) -> anyhow::Result<()> {
     // A greater vote should emit a SaveVote command.
 
     // Learner
@@ -148,7 +154,9 @@ fn test_handle_message_vote_granted_follower_learner_does_not_emit_update_server
         assert_eq!(
             vec![
                 //
-                Command::SaveVote { vote: Vote::new(3, 1) },
+                Command::SaveVote {
+                    vote: Vote::new(3, 1)
+                },
             ],
             eng.output.take_commands()
         );
@@ -171,7 +179,9 @@ fn test_handle_message_vote_granted_follower_learner_does_not_emit_update_server
         assert_eq!(
             vec![
                 //
-                Command::SaveVote { vote: Vote::new(3, 1) },
+                Command::SaveVote {
+                    vote: Vote::new(3, 1)
+                },
             ],
             eng.output.take_commands()
         );

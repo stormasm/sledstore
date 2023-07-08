@@ -142,8 +142,14 @@ where
         S::get_log_reader(self.storage_mut().await.deref_mut()).await
     }
 
-    async fn append<I>(&mut self, entries: I, callback: LogFlushed<C::NodeId>) -> Result<(), StorageError<C::NodeId>>
-    where I: IntoIterator<Item = C::Entry> + OptionalSend {
+    async fn append<I>(
+        &mut self,
+        entries: I,
+        callback: LogFlushed<C::NodeId>,
+    ) -> Result<(), StorageError<C::NodeId>>
+    where
+        I: IntoIterator<Item = C::Entry> + OptionalSend,
+    {
         // Default implementation that calls the flush-before-return `append_to_log`.
 
         S::append_to_log(self.storage_mut().await.deref_mut(), entries).await?;
@@ -171,12 +177,20 @@ where
 
     async fn applied_state(
         &mut self,
-    ) -> Result<(Option<LogId<C::NodeId>>, StoredMembership<C::NodeId, C::Node>), StorageError<C::NodeId>> {
+    ) -> Result<
+        (
+            Option<LogId<C::NodeId>>,
+            StoredMembership<C::NodeId, C::Node>,
+        ),
+        StorageError<C::NodeId>,
+    > {
         S::last_applied_state(self.storage_mut().await.deref_mut()).await
     }
 
     async fn apply<I>(&mut self, entries: I) -> Result<Vec<C::R>, StorageError<C::NodeId>>
-    where I: IntoIterator<Item = C::Entry> + OptionalSend {
+    where
+        I: IntoIterator<Item = C::Entry> + OptionalSend,
+    {
         let entries = entries.into_iter().collect::<Vec<_>>();
         S::apply_to_state_machine(self.storage_mut().await.deref_mut(), &entries).await
     }
@@ -185,7 +199,9 @@ where
         S::get_snapshot_builder(self.storage_mut().await.deref_mut()).await
     }
 
-    async fn begin_receiving_snapshot(&mut self) -> Result<Box<C::SnapshotData>, StorageError<C::NodeId>> {
+    async fn begin_receiving_snapshot(
+        &mut self,
+    ) -> Result<Box<C::SnapshotData>, StorageError<C::NodeId>> {
         S::begin_receiving_snapshot(self.storage_mut().await.deref_mut()).await
     }
 
@@ -197,7 +213,9 @@ where
         S::install_snapshot(self.storage_mut().await.deref_mut(), meta, snapshot).await
     }
 
-    async fn get_current_snapshot(&mut self) -> Result<Option<Snapshot<C>>, StorageError<C::NodeId>> {
+    async fn get_current_snapshot(
+        &mut self,
+    ) -> Result<Option<Snapshot<C>>, StorageError<C::NodeId>> {
         S::get_current_snapshot(self.storage_mut().await.deref_mut()).await
     }
 }

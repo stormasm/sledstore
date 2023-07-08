@@ -1,8 +1,7 @@
 use crate::SnapshotId;
 
 /// The Raft node is streaming in a snapshot from the leader.
-#[derive(Debug, Clone)]
-#[derive(PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct StreamingState {
     /// The offset of the last byte written to the snapshot.
     pub(crate) offset: u64,

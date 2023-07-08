@@ -6,11 +6,25 @@ use std::hash::Hash;
 /// Essential trait bound for node-id, except serde.
 #[doc(hidden)]
 pub trait NodeIdEssential:
-    Sized + Send + Sync + Eq + PartialEq + Ord + PartialOrd + Debug + Display + Hash + Copy + Clone + Default + 'static
+    Sized
+    + Send
+    + Sync
+    + Eq
+    + PartialEq
+    + Ord
+    + PartialOrd
+    + Debug
+    + Display
+    + Hash
+    + Copy
+    + Clone
+    + Default
+    + 'static
 {
 }
 
-impl<T> NodeIdEssential for T where T: Sized
+impl<T> NodeIdEssential for T where
+    T: Sized
         + Send
         + Sync
         + Eq
@@ -43,8 +57,14 @@ pub trait NodeId: NodeIdEssential {}
 impl<T> NodeId for T where T: NodeIdEssential {}
 
 /// Essential trait bound for application level node-data, except serde.
-pub trait NodeEssential: Sized + Send + Sync + Eq + PartialEq + Debug + Clone + Default + 'static {}
-impl<T> NodeEssential for T where T: Sized + Send + Sync + Eq + PartialEq + Debug + Clone + Default + 'static {}
+pub trait NodeEssential:
+    Sized + Send + Sync + Eq + PartialEq + Debug + Clone + Default + 'static
+{
+}
+impl<T> NodeEssential for T where
+    T: Sized + Send + Sync + Eq + PartialEq + Debug + Clone + Default + 'static
+{
+}
 
 /// A Raft `Node`, this trait holds all relevant node information.
 ///
@@ -103,7 +123,9 @@ pub struct BasicNode {
 impl BasicNode {
     /// Creates as [`BasicNode`].
     pub fn new(addr: impl ToString) -> Self {
-        Self { addr: addr.to_string() }
+        Self {
+            addr: addr.to_string(),
+        }
     }
 }
 

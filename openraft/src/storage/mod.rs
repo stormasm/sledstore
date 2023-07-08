@@ -1,6 +1,7 @@
 //! The Raft storage interface and data types.
 
-#[cfg(not(feature = "storage-v2"))] pub(crate) mod adapter;
+#[cfg(not(feature = "storage-v2"))]
+pub(crate) mod adapter;
 mod callback;
 mod helper;
 mod log_store_ext;
@@ -11,7 +12,8 @@ use std::fmt;
 use std::fmt::Debug;
 use std::ops::RangeBounds;
 
-#[cfg(not(feature = "storage-v2"))] pub use adapter::Adaptor;
+#[cfg(not(feature = "storage-v2"))]
+pub use adapter::Adaptor;
 pub use helper::StorageHelper;
 pub use log_store_ext::RaftLogReaderExt;
 use macros::add_async_trait;
@@ -34,7 +36,11 @@ use crate::StoredMembership;
 use crate::Vote;
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 pub struct SnapshotMeta<NID, N>
 where
     NID: NodeId,
@@ -100,7 +106,8 @@ where
 /// The data associated with the current snapshot.
 #[derive(Debug)]
 pub struct Snapshot<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     /// metadata of a snapshot
     pub meta: SnapshotMeta<C::NodeId, C::Node>,
@@ -110,9 +117,13 @@ where C: RaftTypeConfig
 }
 
 impl<C> Snapshot<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
-    pub(crate) fn new(meta: SnapshotMeta<C::NodeId, C::Node>, snapshot: Box<C::SnapshotData>) -> Self {
+    pub(crate) fn new(
+        meta: SnapshotMeta<C::NodeId, C::Node>,
+        snapshot: Box<C::SnapshotData>,
+    ) -> Self {
         Self { meta, snapshot }
     }
 }
@@ -139,7 +150,8 @@ pub struct LogState<C: RaftTypeConfig> {
 /// interface on the same cloneable object, if the underlying state machine is anyway synchronized.
 #[add_async_trait]
 pub trait RaftLogReader<C>: Send + Sync + 'static
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     /// Get a series of log entries from storage.
     ///
@@ -163,7 +175,8 @@ where C: RaftTypeConfig
 /// state machine is anyway synchronized.
 #[add_async_trait]
 pub trait RaftSnapshotBuilder<C>: Send + Sync + 'static
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     /// Build snapshot
     ///
@@ -193,7 +206,8 @@ where C: RaftTypeConfig
 /// components.
 #[add_async_trait]
 pub trait RaftStorage<C>: RaftLogReader<C> + Send + Sync + 'static
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     /// Log reader type.
     type LogReader: RaftLogReader<C>;
@@ -237,7 +251,8 @@ where C: RaftTypeConfig
     /// - There must not be a **hole** in logs. Because Raft only examine the last log id to ensure
     ///   correctness.
     async fn append_to_log<I>(&mut self, entries: I) -> Result<(), StorageError<C::NodeId>>
-    where I: IntoIterator<Item = C::Entry> + OptionalSend;
+    where
+        I: IntoIterator<Item = C::Entry> + OptionalSend;
 
     /// Delete conflict log entries since `log_id`, inclusive.
     ///
@@ -252,14 +267,20 @@ where C: RaftTypeConfig
     /// - It must not leave a **hole** in the log. In other words, if it has to delete logs in more
     ///   than one transactions, it must delete logs in backward order. So that in a case server
     ///   crashes, it won't leave a hole.
-    async fn delete_conflict_logs_since(&mut self, log_id: LogId<C::NodeId>) -> Result<(), StorageError<C::NodeId>>;
+    async fn delete_conflict_logs_since(
+        &mut self,
+        log_id: LogId<C::NodeId>,
+    ) -> Result<(), StorageError<C::NodeId>>;
 
     /// Delete applied log entries upto `log_id`, inclusive.
     ///
     /// To ensure correctness:
     ///
     /// - It must not leave a **hole** in logs.
-    async fn purge_logs_upto(&mut self, log_id: LogId<C::NodeId>) -> Result<(), StorageError<C::NodeId>>;
+    async fn purge_logs_upto(
+        &mut self,
+        log_id: LogId<C::NodeId>,
+    ) -> Result<(), StorageError<C::NodeId>>;
 
     // --- State Machine
 
@@ -275,7 +296,13 @@ where C: RaftTypeConfig
     /// last-applied-log-id.
     async fn last_applied_state(
         &mut self,
-    ) -> Result<(Option<LogId<C::NodeId>>, StoredMembership<C::NodeId, C::Node>), StorageError<C::NodeId>>;
+    ) -> Result<
+        (
+            Option<LogId<C::NodeId>>,
+            StoredMembership<C::NodeId, C::Node>,
+        ),
+        StorageError<C::NodeId>,
+    >;
 
     /// Apply the given payload of entries to the state machine.
     ///
@@ -304,7 +331,10 @@ where C: RaftTypeConfig
     /// - An implementation with persistent snapshot: `apply_to_state_machine()` does not have to
     ///   persist state on disk. But every snapshot has to be persistent. And when starting up the
     ///   application, the state machine should be rebuilt from the last snapshot.
-    async fn apply_to_state_machine(&mut self, entries: &[C::Entry]) -> Result<Vec<C::R>, StorageError<C::NodeId>>;
+    async fn apply_to_state_machine(
+        &mut self,
+        entries: &[C::Entry],
+    ) -> Result<Vec<C::R>, StorageError<C::NodeId>>;
 
     // --- Snapshot
 
@@ -322,7 +352,9 @@ where C: RaftTypeConfig
     ///
     /// See the [storage chapter of the guide](https://datafuselabs.github.io/openraft/storage.html)
     /// for details on log compaction / snapshotting.
-    async fn begin_receiving_snapshot(&mut self) -> Result<Box<C::SnapshotData>, StorageError<C::NodeId>>;
+    async fn begin_receiving_snapshot(
+        &mut self,
+    ) -> Result<Box<C::SnapshotData>, StorageError<C::NodeId>>;
 
     /// Install a snapshot which has finished streaming from the leader.
     ///
@@ -348,5 +380,7 @@ where C: RaftTypeConfig
     ///
     /// A proper snapshot implementation will store the term, index and membership config as part
     /// of the snapshot, which should be decoded for creating this method's response data.
-    async fn get_current_snapshot(&mut self) -> Result<Option<Snapshot<C>>, StorageError<C::NodeId>>;
+    async fn get_current_snapshot(
+        &mut self,
+    ) -> Result<Option<Snapshot<C>>, StorageError<C::NodeId>>;
 }

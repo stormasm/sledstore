@@ -30,7 +30,8 @@ pub(crate) mod response;
 
 pub(crate) use command::Command;
 pub(crate) use command::CommandPayload;
-#[allow(unused_imports)] pub(crate) use command::CommandSeq;
+#[allow(unused_imports)]
+pub(crate) use command::CommandSeq;
 pub(crate) use response::CommandResult;
 pub(crate) use response::Response;
 
@@ -38,7 +39,8 @@ use crate::core::notify::Notify;
 
 /// State machine worker handle for sending command to it.
 pub(crate) struct Handle<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     cmd_tx: mpsc::UnboundedSender<Command<C>>,
     #[allow(dead_code)]
@@ -46,9 +48,13 @@ where C: RaftTypeConfig
 }
 
 impl<C> Handle<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
-    pub(crate) fn send(&mut self, cmd: Command<C>) -> Result<(), mpsc::error::SendError<Command<C>>> {
+    pub(crate) fn send(
+        &mut self,
+        cmd: Command<C>,
+    ) -> Result<(), mpsc::error::SendError<Command<C>>> {
         tracing::debug!("sending command to state machine worker: {:?}", cmd);
         self.cmd_tx.send(cmd)
     }
@@ -89,7 +95,10 @@ where
 
         let join_handle = worker.do_spawn();
 
-        Handle { cmd_tx, join_handle }
+        Handle {
+            cmd_tx,
+            join_handle,
+        }
     }
 
     fn do_spawn(mut self) -> <C::AsyncRuntime as AsyncRuntime>::JoinHandle<()> {
@@ -148,7 +157,10 @@ where
                     let res = CommandResult::new(cmd.seq, Ok(Response::ReceiveSnapshotChunk(resp)));
                     let _ = self.resp_tx.send(Notify::sm(res));
                 }
-                CommandPayload::FinalizeSnapshot { install, snapshot_meta } => {
+                CommandPayload::FinalizeSnapshot {
+                    install,
+                    snapshot_meta,
+                } => {
                     tracing::info!(
                         install = display(install),
                         snapshot_meta = display(snapshot_meta.summary()),
@@ -175,7 +187,10 @@ where
         }
     }
     #[tracing::instrument(level = "debug", skip_all)]
-    async fn apply(&mut self, entries: Vec<C::Entry>) -> Result<ApplyResult<C>, StorageError<C::NodeId>> {
+    async fn apply(
+        &mut self,
+        entries: Vec<C::Entry>,
+    ) -> Result<ApplyResult<C>, StorageError<C::NodeId>> {
         // TODO: prepare response before apply_to_state_machine,
         //       so that an Entry does not need to be Clone,
         //       and no references will be used by apply_to_state_machine
@@ -231,7 +246,10 @@ where
     }
 
     #[tracing::instrument(level = "info", skip_all)]
-    async fn get_snapshot(&mut self, tx: oneshot::Sender<Option<Snapshot<C>>>) -> Result<(), StorageError<C::NodeId>> {
+    async fn get_snapshot(
+        &mut self,
+        tx: oneshot::Sender<Option<Snapshot<C>>>,
+    ) -> Result<(), StorageError<C::NodeId>> {
         tracing::info!("{}", func_name!());
 
         let snapshot = self.state_machine.get_current_snapshot().await?;
@@ -245,12 +263,19 @@ where
     }
 
     #[tracing::instrument(level = "info", skip_all)]
-    async fn receive_snapshot_chunk(&mut self, req: InstallSnapshotRequest<C>) -> Result<(), StorageError<C::NodeId>> {
+    async fn receive_snapshot_chunk(
+        &mut self,
+        req: InstallSnapshotRequest<C>,
+    ) -> Result<(), StorageError<C::NodeId>> {
         let snapshot_meta = req.meta.clone();
         let done = req.done;
         let offset = req.offset;
 
-        let req_id = SnapshotRequestId::new(*req.vote.leader_id(), snapshot_meta.snapshot_id.clone(), offset);
+        let req_id = SnapshotRequestId::new(
+            *req.vote.leader_id(),
+            snapshot_meta.snapshot_id.clone(),
+            offset,
+        );
 
         tracing::info!(
             req = display(req.summary()),
@@ -305,7 +330,9 @@ where
             snapshot_meta
         );
 
-        self.state_machine.install_snapshot(&snapshot_meta, received.snapshot).await?;
+        self.state_machine
+            .install_snapshot(&snapshot_meta, received.snapshot)
+            .await?;
 
         tracing::info!("Done install_snapshot, meta: {:?}", snapshot_meta);
 

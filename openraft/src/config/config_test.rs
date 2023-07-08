@@ -29,7 +29,13 @@ fn test_invalid_election_timeout_config_produces_expected_error() {
 
     let res = config.validate();
     let err = res.unwrap_err();
-    assert_eq!(err, ConfigError::ElectionTimeout { min: 1000, max: 700 });
+    assert_eq!(
+        err,
+        ConfigError::ElectionTimeout {
+            min: 1000,
+            max: 700
+        }
+    );
 
     let config = Config {
         election_timeout_min: 1000,
@@ -40,10 +46,13 @@ fn test_invalid_election_timeout_config_produces_expected_error() {
 
     let res = config.validate();
     let err = res.unwrap_err();
-    assert_eq!(err, ConfigError::ElectionTimeoutLTHeartBeat {
-        election_timeout_min: 1000,
-        heartbeat_interval: 1500
-    });
+    assert_eq!(
+        err,
+        ConfigError::ElectionTimeoutLTHeartBeat {
+            election_timeout_min: 1000,
+            heartbeat_interval: 1500
+        }
+    );
 }
 
 #[test]

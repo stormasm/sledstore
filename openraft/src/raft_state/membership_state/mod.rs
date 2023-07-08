@@ -11,8 +11,10 @@ use crate::Node;
 use crate::NodeId;
 
 mod change_handler;
-#[cfg(test)] mod change_handler_test;
-#[cfg(test)] mod membership_state_test;
+#[cfg(test)]
+mod change_handler_test;
+#[cfg(test)]
+mod membership_state_test;
 
 pub(crate) use change_handler::ChangeHandler;
 
@@ -38,8 +40,7 @@ pub(crate) use change_handler::ChangeHandler;
 /// From (2), a follower only need to revert at most one membership log.
 ///
 /// Thus a raft node will only need to store at most two recent membership logs.
-#[derive(Debug, Clone, Default)]
-#[derive(PartialEq, Eq)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct MembershipState<NID, N>
 where
     NID: NodeId,
@@ -74,7 +75,10 @@ where
         committed: Arc<EffectiveMembership<NID, N>>,
         effective: Arc<EffectiveMembership<NID, N>>,
     ) -> Self {
-        Self { committed, effective }
+        Self {
+            committed,
+            effective,
+        }
     }
 
     pub(crate) fn is_voter(&self, id: &NID) -> bool {
@@ -227,7 +231,10 @@ where
 {
     fn validate(&self) -> Result<(), Box<dyn Error>> {
         less_equal!(self.committed.log_id(), self.effective.log_id());
-        less_equal!(self.committed.log_id().index(), self.effective.log_id().index());
+        less_equal!(
+            self.committed.log_id().index(),
+            self.effective.log_id().index()
+        );
         Ok(())
     }
 }

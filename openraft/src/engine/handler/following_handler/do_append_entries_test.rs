@@ -51,8 +51,10 @@ fn eng() -> Engine<UTConfig> {
 fn test_follower_do_append_entries_empty() -> anyhow::Result<()> {
     let mut eng = eng();
 
-    eng.following_handler().do_append_entries(Vec::<Entry<UTConfig>>::new(), 0);
-    eng.following_handler().do_append_entries(vec![blank_ent(3, 1, 4)], 1);
+    eng.following_handler()
+        .do_append_entries(Vec::<Entry<UTConfig>>::new(), 0);
+    eng.following_handler()
+        .do_append_entries(vec![blank_ent(3, 1, 4)], 1);
 
     assert_eq!(
         &[

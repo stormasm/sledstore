@@ -16,9 +16,12 @@ use crate::NodeId;
 ///
 /// It derives `Default` for building an uninitialized membership state, e.g., when a raft-node is
 /// just created.
-#[derive(Clone, Debug, Default)]
-#[derive(PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 pub struct StoredMembership<NID, N>
 where
     N: Node,

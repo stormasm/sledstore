@@ -143,10 +143,13 @@ pub mod testing {
             let td = tmp_dir();
             {
                 let s7 = self.builder07.build(td.path()).await;
-                or07::RaftStorage::save_hard_state(&s7, &or07::HardState {
-                    current_term: 1,
-                    voted_for: None,
-                })
+                or07::RaftStorage::save_hard_state(
+                    &s7,
+                    &or07::HardState {
+                        current_term: 1,
+                        voted_for: None,
+                    },
+                )
                 .await?;
             }
             {
@@ -162,10 +165,13 @@ pub mod testing {
             let td = tmp_dir();
             {
                 let s7 = self.builder07.build(td.path()).await;
-                or07::RaftStorage::save_hard_state(&s7, &or07::HardState {
-                    current_term: 1,
-                    voted_for: Some(3),
-                })
+                or07::RaftStorage::save_hard_state(
+                    &s7,
+                    &or07::HardState {
+                        current_term: 1,
+                        voted_for: Some(3),
+                    },
+                )
                 .await?;
             }
             {
@@ -203,7 +209,9 @@ pub mod testing {
                     },
                     or07::Entry {
                         log_id: or07::LogId { term: 1, index: 6 },
-                        payload: or07::EntryPayload::Membership(or07::Membership::new_single(btreeset! {1,2})),
+                        payload: or07::EntryPayload::Membership(or07::Membership::new_single(
+                            btreeset! {1,2},
+                        )),
                     },
                     or07::Entry {
                         log_id: or07::LogId { term: 1, index: 7 },
@@ -211,7 +219,11 @@ pub mod testing {
                     },
                 ];
 
-                or07::RaftStorage::append_to_log(&s7, entries.iter().collect::<Vec<_>>().as_slice()).await?;
+                or07::RaftStorage::append_to_log(
+                    &s7,
+                    entries.iter().collect::<Vec<_>>().as_slice(),
+                )
+                .await?;
             }
             {
                 let mut s8 = self.builder_latest.build(td.path()).await;
@@ -274,7 +286,9 @@ pub mod testing {
                     },
                     or07::Entry {
                         log_id: or07::LogId { term: 1, index: 6 },
-                        payload: or07::EntryPayload::Membership(or07::Membership::new_single(btreeset! {1,2})),
+                        payload: or07::EntryPayload::Membership(or07::Membership::new_single(
+                            btreeset! {1,2},
+                        )),
                     },
                     or07::Entry {
                         log_id: or07::LogId { term: 1, index: 7 },
@@ -282,8 +296,16 @@ pub mod testing {
                     },
                 ];
 
-                or07::RaftStorage::append_to_log(&s7, entries.iter().collect::<Vec<_>>().as_slice()).await?;
-                or07::RaftStorage::delete_conflict_logs_since(&s7, or07::LogId { term: 1, index: 7 }).await?;
+                or07::RaftStorage::append_to_log(
+                    &s7,
+                    entries.iter().collect::<Vec<_>>().as_slice(),
+                )
+                .await?;
+                or07::RaftStorage::delete_conflict_logs_since(
+                    &s7,
+                    or07::LogId { term: 1, index: 7 },
+                )
+                .await?;
                 or07::RaftStorage::purge_logs_upto(&s7, or07::LogId { term: 1, index: 5 }).await?;
             }
             {
@@ -317,8 +339,14 @@ pub mod testing {
                 let got = crate::RaftStorage::get_log_state(&mut s8).await?;
                 assert_eq!(
                     crate::LogState {
-                        last_purged_log_id: Some(crate::LogId::new(crate::CommittedLeaderId::new(1, 0), 5)),
-                        last_log_id: Some(crate::LogId::new(crate::CommittedLeaderId::new(1, 0), 6)),
+                        last_purged_log_id: Some(crate::LogId::new(
+                            crate::CommittedLeaderId::new(1, 0),
+                            5
+                        )),
+                        last_log_id: Some(crate::LogId::new(
+                            crate::CommittedLeaderId::new(1, 0),
+                            6
+                        )),
                     },
                     got
                 );
@@ -338,7 +366,9 @@ pub mod testing {
                     },
                     or07::Entry {
                         log_id: or07::LogId { term: 1, index: 6 },
-                        payload: or07::EntryPayload::Membership(or07::Membership::new_single(btreeset! {1,2})),
+                        payload: or07::EntryPayload::Membership(or07::Membership::new_single(
+                            btreeset! {1,2},
+                        )),
                     },
                     or07::Entry {
                         log_id: or07::LogId { term: 1, index: 7 },
@@ -346,12 +376,17 @@ pub mod testing {
                     },
                 ];
 
-                or07::RaftStorage::apply_to_state_machine(&s7, entries.iter().collect::<Vec<_>>().as_slice()).await?;
+                or07::RaftStorage::apply_to_state_machine(
+                    &s7,
+                    entries.iter().collect::<Vec<_>>().as_slice(),
+                )
+                .await?;
             }
             {
                 let mut s8 = self.builder_latest.build(td.path()).await;
 
-                let (last_log_id, last_membership) = crate::RaftStorage::last_applied_state(&mut s8).await?;
+                let (last_log_id, last_membership) =
+                    crate::RaftStorage::last_applied_state(&mut s8).await?;
                 assert_eq!(
                     Some(crate::LogId::new(crate::CommittedLeaderId::new(1, 0), 7),),
                     last_log_id
@@ -382,7 +417,9 @@ pub mod testing {
                     },
                     or07::Entry {
                         log_id: or07::LogId { term: 1, index: 6 },
-                        payload: or07::EntryPayload::Membership(or07::Membership::new_single(btreeset! {1,2})),
+                        payload: or07::EntryPayload::Membership(or07::Membership::new_single(
+                            btreeset! {1,2},
+                        )),
                     },
                     or07::Entry {
                         log_id: or07::LogId { term: 1, index: 7 },
@@ -390,7 +427,11 @@ pub mod testing {
                     },
                 ];
 
-                or07::RaftStorage::apply_to_state_machine(&s7, entries.iter().collect::<Vec<_>>().as_slice()).await?;
+                or07::RaftStorage::apply_to_state_machine(
+                    &s7,
+                    entries.iter().collect::<Vec<_>>().as_slice(),
+                )
+                .await?;
                 or07::RaftStorage::build_snapshot(&s7).await?;
             }
             {
@@ -496,7 +537,10 @@ mod tests {
         };
 
         let v7 = or07::EffectiveMembership::new(or07::LogId::new(5, 3), m7());
-        let want = crate::StoredMembership::new(Some(crate::LogId::new(CommittedLeaderId::new(5, 0), 3)), m8());
+        let want = crate::StoredMembership::new(
+            Some(crate::LogId::new(CommittedLeaderId::new(5, 0), 3)),
+            m8(),
+        );
 
         let s = serde_json::to_string(&v7)?;
         let c: StoredMembership = serde_json::from_str(&s)?;
@@ -598,7 +642,10 @@ mod tests {
 
         let s = serde_json::to_string(&v8)?;
         let c: Entry<TestingConfig> = serde_json::from_str(&s)?;
-        assert_eq!(serde_json::to_string(&want)?, serde_json::to_string(&c.upgrade())?);
+        assert_eq!(
+            serde_json::to_string(&want)?,
+            serde_json::to_string(&c.upgrade())?
+        );
         Ok(())
     }
 
@@ -622,7 +669,10 @@ mod tests {
 
         let s = serde_json::to_string(&v8)?;
         let c: Entry<TestingConfig> = serde_json::from_str(&s)?;
-        assert_eq!(serde_json::to_string(&want)?, serde_json::to_string(&c.upgrade())?);
+        assert_eq!(
+            serde_json::to_string(&want)?,
+            serde_json::to_string(&c.upgrade())?
+        );
         Ok(())
     }
 
@@ -653,7 +703,10 @@ mod tests {
 
         let s = serde_json::to_string(&v8)?;
         let c: Entry<TestingConfig> = serde_json::from_str(&s)?;
-        assert_eq!(serde_json::to_string(&want)?, serde_json::to_string(&c.upgrade())?);
+        assert_eq!(
+            serde_json::to_string(&want)?,
+            serde_json::to_string(&c.upgrade())?
+        );
         Ok(())
     }
 

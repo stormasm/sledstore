@@ -17,7 +17,8 @@ use crate::RaftTypeConfig;
 
 /// Emit RaftMsg::Tick event at regular `interval`.
 pub(crate) struct Tick<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     interval: Duration,
 
@@ -28,16 +29,22 @@ where C: RaftTypeConfig
 }
 
 pub(crate) struct TickHandle<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     enabled: Arc<AtomicBool>,
     join_handle: <C::AsyncRuntime as AsyncRuntime>::JoinHandle<()>,
 }
 
 impl<C> Tick<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
-    pub(crate) fn spawn(interval: Duration, tx: mpsc::UnboundedSender<Notify<C>>, enabled: bool) -> TickHandle<C> {
+    pub(crate) fn spawn(
+        interval: Duration,
+        tx: mpsc::UnboundedSender<Notify<C>>,
+        enabled: bool,
+    ) -> TickHandle<C> {
         let enabled = Arc::new(AtomicBool::from(enabled));
         let this = Self {
             interval,
@@ -49,7 +56,10 @@ where C: RaftTypeConfig
             Level::DEBUG,
             "tick"
         )));
-        TickHandle { enabled, join_handle }
+        TickHandle {
+            enabled,
+            join_handle,
+        }
     }
 
     pub(crate) async fn tick_loop(self) {
@@ -76,7 +86,8 @@ where C: RaftTypeConfig
 }
 
 impl<C> TickHandle<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     pub(crate) fn enable(&self, enabled: bool) {
         self.enabled.store(enabled, Ordering::Relaxed);

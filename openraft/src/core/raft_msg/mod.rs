@@ -29,7 +29,8 @@ pub(crate) mod external_command;
 pub(crate) type ResultSender<T, E> = oneshot::Sender<Result<T, E>>;
 
 /// TX for Install Snapshot Response
-pub(crate) type InstallSnapshotTx<NID> = ResultSender<InstallSnapshotResponse<NID>, InstallSnapshotError>;
+pub(crate) type InstallSnapshotTx<NID> =
+    ResultSender<InstallSnapshotResponse<NID>, InstallSnapshotError>;
 
 /// TX for Vote Response
 pub(crate) type VoteTx<NID> = ResultSender<VoteResponse<NID>, Infallible>;
@@ -38,8 +39,10 @@ pub(crate) type VoteTx<NID> = ResultSender<VoteResponse<NID>, Infallible>;
 pub(crate) type AppendEntriesTx<NID> = ResultSender<AppendEntriesResponse<NID>, Infallible>;
 
 /// TX for Client Write Response
-pub(crate) type ClientWriteTx<C> =
-    ResultSender<ClientWriteResponse<C>, ClientWriteError<<C as RaftTypeConfig>::NodeId, <C as RaftTypeConfig>::Node>>;
+pub(crate) type ClientWriteTx<C> = ResultSender<
+    ClientWriteResponse<C>,
+    ClientWriteError<<C as RaftTypeConfig>::NodeId, <C as RaftTypeConfig>::Node>,
+>;
 
 /// A message sent by application to the [`RaftCore`].
 ///
@@ -92,8 +95,11 @@ where
     ExternalRequest {
         #[allow(clippy::type_complexity)]
         req: Box<
-            dyn FnOnce(&RaftState<C::NodeId, C::Node, <C::AsyncRuntime as AsyncRuntime>::Instant>, &mut LS, &mut N)
-                + Send
+            dyn FnOnce(
+                    &RaftState<C::NodeId, C::Node, <C::AsyncRuntime as AsyncRuntime>::Instant>,
+                    &mut LS,
+                    &mut N,
+                ) + Send
                 + 'static,
         >,
     },
@@ -130,7 +136,10 @@ where
                 retain,
                 ..
             } => {
-                format!("ChangeMembership: members: {:?}, retain: {}", members, retain,)
+                format!(
+                    "ChangeMembership: members: {:?}, retain: {}",
+                    members, retain,
+                )
             }
             RaftMsg::ExternalRequest { .. } => "External Request".to_string(),
             RaftMsg::ExternalCommand { cmd } => {

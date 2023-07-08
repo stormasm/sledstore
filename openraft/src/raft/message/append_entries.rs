@@ -10,7 +10,11 @@ use crate::Vote;
 
 /// An RPC sent by a cluster leader to replicate log entries (§5.3), and as a heartbeat (§5.2).
 #[derive(Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 pub struct AppendEntriesRequest<C: RaftTypeConfig> {
     pub vote: Vote<C::NodeId>,
 
@@ -27,7 +31,8 @@ pub struct AppendEntriesRequest<C: RaftTypeConfig> {
 }
 
 impl<C: RaftTypeConfig> fmt::Debug for AppendEntriesRequest<C>
-where C::D: fmt::Debug
+where
+    C::D: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("AppendEntriesRequest")
@@ -58,9 +63,12 @@ impl<C: RaftTypeConfig> MessageSummary<AppendEntriesRequest<C>> for AppendEntrie
 ///
 /// [`RPCError`]: crate::error::RPCError
 /// [`RaftNetwork::send_append_entries`]: crate::network::RaftNetwork::send_append_entries
-#[derive(Debug)]
-#[derive(PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[derive(Debug, PartialEq, Eq)]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 pub enum AppendEntriesResponse<NID: NodeId> {
     /// Successfully replicated all log entries to the target node.
     Success,

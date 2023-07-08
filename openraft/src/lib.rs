@@ -3,7 +3,11 @@
 #![cfg_attr(feature = "bt", feature(provide_any))]
 #![cfg_attr(feature = "bench", feature(test))]
 // TODO: `clippy::result-large-err`: StorageError is 136 bytes, try to reduce the size.
-#![allow(clippy::bool_assert_comparison, clippy::type_complexity, clippy::result_large_err)]
+#![allow(
+    clippy::bool_assert_comparison,
+    clippy::type_complexity,
+    clippy::result_large_err
+)]
 #![deny(unused_qualifications)]
 // TODO: Enable this when doc is complete
 // #![warn(missing_docs)]
@@ -51,8 +55,10 @@ mod storage_error;
 mod summary;
 mod vote;
 
-#[cfg(feature = "compat")] pub mod compat;
-#[cfg(feature = "compat-07")] pub use or07;
+#[cfg(feature = "compat")]
+pub mod compat;
+#[cfg(feature = "compat-07")]
+pub use or07;
 
 pub mod async_runtime;
 pub mod entry;
@@ -81,7 +87,8 @@ pub(crate) mod raft_state;
 mod runtime;
 mod try_as_ref;
 
-#[cfg(test)] mod feature_serde_test;
+#[cfg(test)]
+mod feature_serde_test;
 
 pub use anyerror;
 pub use anyerror::AnyError;

@@ -37,14 +37,16 @@ use crate::RaftTypeConfig;
 /// - Implementing the new APIs will disable the old APIs.
 #[add_async_trait]
 pub trait RaftNetwork<C>: OptionalSend + Sync + 'static
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     /// Send an AppendEntries RPC to the target.
     async fn append_entries(
         &mut self,
         rpc: AppendEntriesRequest<C>,
         option: RPCOption,
-    ) -> Result<AppendEntriesResponse<C::NodeId>, RPCError<C::NodeId, C::Node, RaftError<C::NodeId>>> {
+    ) -> Result<AppendEntriesResponse<C::NodeId>, RPCError<C::NodeId, C::Node, RaftError<C::NodeId>>>
+    {
         let _ = option;
         #[allow(deprecated)]
         self.send_append_entries(rpc).await
@@ -80,7 +82,8 @@ where C: RaftTypeConfig
     async fn send_append_entries(
         &mut self,
         rpc: AppendEntriesRequest<C>,
-    ) -> Result<AppendEntriesResponse<C::NodeId>, RPCError<C::NodeId, C::Node, RaftError<C::NodeId>>> {
+    ) -> Result<AppendEntriesResponse<C::NodeId>, RPCError<C::NodeId, C::Node, RaftError<C::NodeId>>>
+    {
         let _ = rpc;
         unimplemented!("send_append_entries is deprecated")
     }

@@ -49,13 +49,19 @@ fn test_handle_vote_resp() -> anyhow::Result<()> {
         eng.state.vote = UTime::new(TokioInstant::now(), Vote::new(2, 1));
         eng.state
             .membership_state
-            .set_effective(Arc::new(EffectiveMembership::new(Some(log_id(1, 1, 1)), m12())));
+            .set_effective(Arc::new(EffectiveMembership::new(
+                Some(log_id(1, 1, 1)),
+                m12(),
+            )));
 
-        eng.handle_vote_resp(2, VoteResponse {
-            vote: Vote::new(2, 2),
-            vote_granted: true,
-            last_log_id: Some(log_id(2, 1, 2)),
-        });
+        eng.handle_vote_resp(
+            2,
+            VoteResponse {
+                vote: Vote::new(2, 2),
+                vote_granted: true,
+                last_log_id: Some(log_id(2, 1, 2)),
+            },
+        );
 
         assert_eq!(Vote::new(2, 1), *eng.state.vote_ref());
         assert!(eng.internal_server_state.is_following());
@@ -65,14 +71,19 @@ fn test_handle_vote_resp() -> anyhow::Result<()> {
         assert_eq!(0, eng.output.take_commands().len());
     }
 
-    tracing::info!("--- recv a smaller vote. vote_granted==false; always keep trying in candidate state");
+    tracing::info!(
+        "--- recv a smaller vote. vote_granted==false; always keep trying in candidate state"
+    );
     {
         let mut eng = eng();
         eng.config.id = 1;
         eng.state.vote = UTime::new(TokioInstant::now(), Vote::new(2, 1));
         eng.state
             .membership_state
-            .set_effective(Arc::new(EffectiveMembership::new(Some(log_id(1, 1, 1)), m12())));
+            .set_effective(Arc::new(EffectiveMembership::new(
+                Some(log_id(1, 1, 1)),
+                m12(),
+            )));
         eng.vote_handler().become_leading();
 
         let last_log_id = eng.state.last_log_id().copied();
@@ -83,16 +94,23 @@ fn test_handle_vote_resp() -> anyhow::Result<()> {
         });
         eng.state.server_state = ServerState::Candidate;
 
-        eng.handle_vote_resp(2, VoteResponse {
-            vote: Vote::new(1, 1),
-            vote_granted: false,
-            last_log_id: Some(log_id(2, 1, 2)),
-        });
+        eng.handle_vote_resp(
+            2,
+            VoteResponse {
+                vote: Vote::new(1, 1),
+                vote_granted: false,
+                last_log_id: Some(log_id(2, 1, 2)),
+            },
+        );
 
         assert_eq!(Vote::new(2, 1), *eng.state.vote_ref());
         assert_eq!(
             Some(btreeset! {1},),
-            eng.internal_server_state.leading().map(|x| x.voting().unwrap().granters().collect::<BTreeSet<_>>())
+            eng.internal_server_state.leading().map(|x| x
+                .voting()
+                .unwrap()
+                .granters()
+                .collect::<BTreeSet<_>>())
         );
 
         assert_eq!(ServerState::Candidate, eng.state.server_state);
@@ -109,7 +127,10 @@ fn test_handle_vote_resp() -> anyhow::Result<()> {
         eng.state.log_ids = LogIdList::new(vec![log_id(3, 1, 3)]);
         eng.state
             .membership_state
-            .set_effective(Arc::new(EffectiveMembership::new(Some(log_id(1, 1, 1)), m12())));
+            .set_effective(Arc::new(EffectiveMembership::new(
+                Some(log_id(1, 1, 1)),
+                m12(),
+            )));
         eng.vote_handler().become_leading();
 
         let last_log_id = eng.state.last_log_id().copied();
@@ -120,11 +141,14 @@ fn test_handle_vote_resp() -> anyhow::Result<()> {
         });
         eng.state.server_state = ServerState::Candidate;
 
-        eng.handle_vote_resp(2, VoteResponse {
-            vote: Vote::new(3, 2),
-            vote_granted: false,
-            last_log_id: Some(log_id(2, 1, 2)),
-        });
+        eng.handle_vote_resp(
+            2,
+            VoteResponse {
+                vote: Vote::new(3, 2),
+                vote_granted: false,
+                last_log_id: Some(log_id(2, 1, 2)),
+            },
+        );
 
         assert_eq!(Vote::new(3, 2), *eng.state.vote_ref());
         assert!(eng.internal_server_state.is_following());
@@ -132,19 +156,26 @@ fn test_handle_vote_resp() -> anyhow::Result<()> {
         assert_eq!(ServerState::Follower, eng.state.server_state);
 
         assert_eq!(
-            vec![Command::SaveVote { vote: Vote::new(3, 2) },],
+            vec![Command::SaveVote {
+                vote: Vote::new(3, 2)
+            },],
             eng.output.take_commands()
         );
     }
 
-    tracing::info!("--- equal vote, rejected by higher last_log_id. keep trying in candidate state");
+    tracing::info!(
+        "--- equal vote, rejected by higher last_log_id. keep trying in candidate state"
+    );
     {
         let mut eng = eng();
         eng.config.id = 1;
         eng.state.vote = UTime::new(TokioInstant::now(), Vote::new(2, 1));
         eng.state
             .membership_state
-            .set_effective(Arc::new(EffectiveMembership::new(Some(log_id(1, 1, 1)), m12())));
+            .set_effective(Arc::new(EffectiveMembership::new(
+                Some(log_id(1, 1, 1)),
+                m12(),
+            )));
         eng.vote_handler().become_leading();
 
         let last_log_id = eng.state.last_log_id().copied();
@@ -156,16 +187,23 @@ fn test_handle_vote_resp() -> anyhow::Result<()> {
 
         eng.state.server_state = ServerState::Candidate;
 
-        eng.handle_vote_resp(2, VoteResponse {
-            vote: Vote::new(2, 1),
-            vote_granted: false,
-            last_log_id: Some(log_id(2, 1, 2)),
-        });
+        eng.handle_vote_resp(
+            2,
+            VoteResponse {
+                vote: Vote::new(2, 1),
+                vote_granted: false,
+                last_log_id: Some(log_id(2, 1, 2)),
+            },
+        );
 
         assert_eq!(Vote::new(2, 1), *eng.state.vote_ref());
         assert_eq!(
             Some(btreeset! {1},),
-            eng.internal_server_state.leading().map(|x| x.voting().unwrap().granters().collect::<BTreeSet<_>>())
+            eng.internal_server_state.leading().map(|x| x
+                .voting()
+                .unwrap()
+                .granters()
+                .collect::<BTreeSet<_>>())
         );
 
         assert_eq!(ServerState::Candidate, eng.state.server_state);
@@ -180,7 +218,10 @@ fn test_handle_vote_resp() -> anyhow::Result<()> {
         eng.state.vote = UTime::new(TokioInstant::now(), Vote::new(2, 1));
         eng.state
             .membership_state
-            .set_effective(Arc::new(EffectiveMembership::new(Some(log_id(1, 1, 1)), m1234())));
+            .set_effective(Arc::new(EffectiveMembership::new(
+                Some(log_id(1, 1, 1)),
+                m1234(),
+            )));
         eng.vote_handler().become_leading();
 
         let last_log_id = eng.state.last_log_id().copied();
@@ -192,16 +233,23 @@ fn test_handle_vote_resp() -> anyhow::Result<()> {
 
         eng.state.server_state = ServerState::Candidate;
 
-        eng.handle_vote_resp(2, VoteResponse {
-            vote: Vote::new(2, 1),
-            vote_granted: true,
-            last_log_id: Some(log_id(2, 1, 2)),
-        });
+        eng.handle_vote_resp(
+            2,
+            VoteResponse {
+                vote: Vote::new(2, 1),
+                vote_granted: true,
+                last_log_id: Some(log_id(2, 1, 2)),
+            },
+        );
 
         assert_eq!(Vote::new(2, 1), *eng.state.vote_ref());
         assert_eq!(
             Some(btreeset! {1,2},),
-            eng.internal_server_state.leading().map(|x| x.voting().unwrap().granters().collect::<BTreeSet<_>>())
+            eng.internal_server_state.leading().map(|x| x
+                .voting()
+                .unwrap()
+                .granters()
+                .collect::<BTreeSet<_>>())
         );
 
         assert_eq!(ServerState::Candidate, eng.state.server_state);
@@ -216,7 +264,10 @@ fn test_handle_vote_resp() -> anyhow::Result<()> {
         eng.state.vote = UTime::new(TokioInstant::now(), Vote::new(2, 1));
         eng.state
             .membership_state
-            .set_effective(Arc::new(EffectiveMembership::new(Some(log_id(1, 1, 1)), m12())));
+            .set_effective(Arc::new(EffectiveMembership::new(
+                Some(log_id(1, 1, 1)),
+                m12(),
+            )));
         eng.vote_handler().become_leading();
 
         let last_log_id = eng.state.last_log_id().copied();
@@ -228,11 +279,14 @@ fn test_handle_vote_resp() -> anyhow::Result<()> {
 
         eng.state.server_state = ServerState::Candidate;
 
-        eng.handle_vote_resp(2, VoteResponse {
-            vote: Vote::new(2, 1),
-            vote_granted: true,
-            last_log_id: Some(log_id(2, 1, 2)),
-        });
+        eng.handle_vote_resp(
+            2,
+            VoteResponse {
+                vote: Vote::new(2, 1),
+                vote_granted: true,
+                last_log_id: Some(log_id(2, 1, 2)),
+            },
+        );
 
         assert_eq!(Vote::new_committed(2, 1), *eng.state.vote_ref());
         assert!(

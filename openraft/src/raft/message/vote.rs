@@ -8,7 +8,11 @@ use crate::Vote;
 
 /// An RPC sent by candidates to gather votes (§5.2).
 #[derive(Debug, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 pub struct VoteRequest<NID: NodeId> {
     pub vote: Vote<NID>,
     pub last_log_id: Option<LogId<NID>>,
@@ -16,7 +20,12 @@ pub struct VoteRequest<NID: NodeId> {
 
 impl<NID: NodeId> fmt::Display for VoteRequest<NID> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{{vote:{}, last_log:{}}}", self.vote, self.last_log_id.display(),)
+        write!(
+            f,
+            "{{vote:{}, last_log:{}}}",
+            self.vote,
+            self.last_log_id.display(),
+        )
     }
 }
 
@@ -34,7 +43,11 @@ impl<NID: NodeId> VoteRequest<NID> {
 
 /// The response to a `VoteRequest`.
 #[derive(Debug, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 pub struct VoteResponse<NID: NodeId> {
     /// vote after a node handling vote-request.
     /// Thus `resp.vote >= req.vote` always holds.

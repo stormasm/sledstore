@@ -28,33 +28,47 @@ use crate::SnapshotMeta;
 use crate::SnapshotSegmentId;
 use crate::StoredMembership;
 
-#[cfg(test)] mod append_entries_test;
-#[cfg(test)] mod commit_entries_test;
-#[cfg(test)] mod do_append_entries_test;
-#[cfg(test)] mod install_snapshot_test;
-#[cfg(test)] mod receive_snapshot_chunk_test;
-#[cfg(test)] mod truncate_logs_test;
-#[cfg(test)] mod update_committed_membership_test;
+#[cfg(test)]
+mod append_entries_test;
+#[cfg(test)]
+mod commit_entries_test;
+#[cfg(test)]
+mod do_append_entries_test;
+#[cfg(test)]
+mod install_snapshot_test;
+#[cfg(test)]
+mod receive_snapshot_chunk_test;
+#[cfg(test)]
+mod truncate_logs_test;
+#[cfg(test)]
+mod update_committed_membership_test;
 
 /// Receive replication request and deal with them.
 ///
 /// It mainly implements the logic of a follower/learner
 pub(crate) struct FollowingHandler<'x, C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     pub(crate) config: &'x mut EngineConfig<C::NodeId>,
-    pub(crate) state: &'x mut RaftState<C::NodeId, C::Node, <C::AsyncRuntime as AsyncRuntime>::Instant>,
+    pub(crate) state:
+        &'x mut RaftState<C::NodeId, C::Node, <C::AsyncRuntime as AsyncRuntime>::Instant>,
     pub(crate) output: &'x mut EngineOutput<C>,
 }
 
 impl<'x, C> FollowingHandler<'x, C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     /// Append entries to follower/learner.
     ///
     /// Also clean conflicting entries and update membership state.
     #[tracing::instrument(level = "debug", skip_all)]
-    pub(crate) fn append_entries(&mut self, prev_log_id: Option<LogId<C::NodeId>>, entries: Vec<C::Entry>) {
+    pub(crate) fn append_entries(
+        &mut self,
+        prev_log_id: Option<LogId<C::NodeId>>,
+        entries: Vec<C::Entry>,
+    ) {
         tracing::debug!(
             prev_log_id = display(prev_log_id.summary()),
             entries = display(DisplaySlice::<_>(&entries)),
@@ -78,7 +92,8 @@ where C: RaftTypeConfig
 
         let last_log_id = entries.last().map(|x| *x.get_log_id());
 
-        self.state.update_accepted(std::cmp::max(prev_log_id, last_log_id));
+        self.state
+            .update_accepted(std::cmp::max(prev_log_id, last_log_id));
 
         let l = entries.len();
         let since = self.state.first_conflicting_index(&entries);
@@ -103,10 +118,16 @@ where C: RaftTypeConfig
         if let Some(ref prev) = prev_log_id {
             if !self.state.has_log_id(prev) {
                 let local = self.state.get_log_id(prev.index);
-                tracing::debug!(local = display(DisplayOption(&local)), "prev_log_id does not match");
+                tracing::debug!(
+                    local = display(DisplayOption(&local)),
+                    "prev_log_id does not match"
+                );
 
                 self.truncate_logs(prev.index);
-                return Err(RejectAppendEntries::ByConflictingLogId { local, expect: *prev });
+                return Err(RejectAppendEntries::ByConflictingLogId {
+                    local,
+                    expect: *prev,
+                });
             }
         }
 
@@ -142,7 +163,8 @@ where C: RaftTypeConfig
         self.state.extend_log_ids(&entries);
         self.append_membership(entries.iter());
 
-        self.output.push_command(Command::AppendInputEntries { entries });
+        self.output
+            .push_command(Command::AppendInputEntries { entries });
     }
 
     /// Commit entries that are already committed by the leader.
@@ -193,7 +215,9 @@ where C: RaftTypeConfig
         };
 
         self.state.log_ids.truncate(since);
-        self.output.push_command(Command::DeleteConflictLog { since: since_log_id });
+        self.output.push_command(Command::DeleteConflictLog {
+            since: since_log_id,
+        });
 
         let changed = self.state.membership_state.truncate(since);
         if let Some(_c) = changed {
@@ -204,7 +228,9 @@ where C: RaftTypeConfig
     /// Append membership log if membership config entries are found, after appending entries to
     /// log.
     fn append_membership<'a>(&mut self, entries: impl DoubleEndedIterator<Item = &'a C::Entry>)
-    where C::Entry: 'a {
+    where
+        C::Entry: 'a,
+    {
         let memberships = Self::last_two_memberships(entries);
         if memberships.is_empty() {
             return;
@@ -218,7 +244,9 @@ where C: RaftTypeConfig
                 "applying {}-th new membership configs received from leader",
                 i
             );
-            self.state.membership_state.append(Arc::new(EffectiveMembership::new_from_stored_membership(m)));
+            self.state
+                .membership_state
+                .append(Arc::new(EffectiveMembership::new_from_stored_membership(m)));
         }
 
         tracing::debug!(
@@ -254,7 +282,11 @@ where C: RaftTypeConfig
 
         let snapshot_id = &req.meta.snapshot_id;
 
-        let curr_id = self.state.snapshot_streaming.as_ref().map(|s| &s.snapshot_id);
+        let curr_id = self
+            .state
+            .snapshot_streaming
+            .as_ref()
+            .map(|s| &s.snapshot_id);
 
         // Changed to another stream. re-init snapshot state.
         if curr_id != Some(&req.meta.snapshot_id) {
@@ -325,7 +357,8 @@ where C: RaftTypeConfig
                 snap_last_log_id.summary(),
                 self.state.committed().summary()
             );
-            self.output.push_command(Command::from(sm::Command::cancel_snapshot(meta)));
+            self.output
+                .push_command(Command::from(sm::Command::cancel_snapshot(meta)));
             // // TODO: temp solution: committed is updated after snapshot_last_log_id.
             // self.state.enable_validate = old_validate;
             return;
@@ -383,7 +416,8 @@ where C: RaftTypeConfig
         //       - Replace state machine with snapshot and replace the `current_snapshot` in the store.
         //       - Do not install, just replace the `current_snapshot` with a newer one. This command can be
         //         used for leader to synchronize its snapshot data.
-        self.output.push_command(Command::from(sm::Command::install_snapshot(meta)));
+        self.output
+            .push_command(Command::from(sm::Command::install_snapshot(meta)));
 
         // A local log that is <= snap_last_log_id can not conflict with the leader.
         // But there will be a hole in the logs. Thus it's better remove all logs.
@@ -406,7 +440,9 @@ where C: RaftTypeConfig
     fn last_two_memberships<'a>(
         entries: impl DoubleEndedIterator<Item = &'a C::Entry>,
     ) -> Vec<StoredMembership<C::NodeId, C::Node>>
-    where C::Entry: 'a {
+    where
+        C::Entry: 'a,
+    {
         let mut memberships = vec![];
 
         // Find the last 2 membership config entries: the committed and the effective.

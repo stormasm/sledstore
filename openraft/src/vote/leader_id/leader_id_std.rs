@@ -5,9 +5,14 @@ use std::marker::PhantomData;
 use crate::NodeId;
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 pub struct LeaderId<NID>
-where NID: NodeId
+where
+    NID: NodeId,
 {
     pub term: u64,
 
@@ -73,9 +78,12 @@ impl<NID: NodeId> std::fmt::Display for LeaderId<NID> {
     }
 }
 
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
-#[derive(PartialOrd, Ord)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 #[cfg_attr(feature = "serde", serde(transparent))]
 pub struct CommittedLeaderId<NID> {
     pub term: u64,
@@ -91,7 +99,10 @@ impl<NID: NodeId> std::fmt::Display for CommittedLeaderId<NID> {
 impl<NID: NodeId> CommittedLeaderId<NID> {
     pub fn new(term: u64, node_id: NID) -> Self {
         let _ = node_id;
-        Self { term, p: PhantomData }
+        Self {
+            term,
+            p: PhantomData,
+        }
     }
 }
 
@@ -119,7 +130,10 @@ mod tests {
         #[allow(clippy::redundant_closure)]
         let lid = |term, node_id| LeaderId::<u64>::new(term, node_id);
 
-        let lid_none = |term| LeaderId::<u64> { term, voted_for: None };
+        let lid_none = |term| LeaderId::<u64> {
+            term,
+            voted_for: None,
+        };
 
         // Compare term first
         assert!(lid(2, 2) > lid(1, 2));

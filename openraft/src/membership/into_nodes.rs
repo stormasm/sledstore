@@ -44,7 +44,9 @@ where
     NID: NodeId,
 {
     fn into_nodes(self) -> BTreeMap<NID, N> {
-        self.into_iter().map(|node_id| (node_id, N::default())).collect()
+        self.into_iter()
+            .map(|node_id| (node_id, N::default()))
+            .collect()
     }
 }
 
@@ -56,7 +58,10 @@ where
     fn into_nodes(self) -> BTreeMap<NID, N> {
         match self {
             None => BTreeMap::new(),
-            Some(s) => s.into_iter().map(|node_id| (node_id, N::default())).collect(),
+            Some(s) => s
+                .into_iter()
+                .map(|node_id| (node_id, N::default()))
+                .collect(),
         }
     }
 }

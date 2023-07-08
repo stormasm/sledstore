@@ -11,9 +11,7 @@ use crate::NodeId;
 ///
 /// The accepted log id must be present. When the follower truncates its log, `accepted` should be
 /// reset.
-#[derive(Debug, Clone)]
-#[derive(Default)]
-#[derive(PartialEq, Eq)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub(crate) struct Accepted<NID: NodeId> {
     /// From which leader this range of log is accepted.
     leader_id: LeaderId<NID>,

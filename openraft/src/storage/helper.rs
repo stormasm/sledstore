@@ -59,8 +59,10 @@ where
     /// state from stable storage.
     pub async fn get_initial_state(
         &mut self,
-    ) -> Result<RaftState<C::NodeId, C::Node, <C::AsyncRuntime as AsyncRuntime>::Instant>, StorageError<C::NodeId>>
-    {
+    ) -> Result<
+        RaftState<C::NodeId, C::Node, <C::AsyncRuntime as AsyncRuntime>::Instant>,
+        StorageError<C::NodeId>,
+    > {
         let vote = self.log_store.read_vote().await?;
         let vote = vote.unwrap_or_default();
 
@@ -77,7 +79,8 @@ where
             last_purged_log_id = last_applied;
         }
 
-        let log_ids = LogIdList::load_log_ids(last_purged_log_id, last_log_id, self.log_store).await?;
+        let log_ids =
+            LogIdList::load_log_ids(last_purged_log_id, last_log_id, self.log_store).await?;
 
         // TODO: `flushed` is not set.
         let io_state = IOState::new(vote, LogIOId::default(), last_applied, last_purged_log_id);
@@ -137,7 +140,9 @@ where
     /// a follower only need to revert at most one membership log.
     ///
     /// Thus a raft node will only need to store at most two recent membership logs.
-    pub async fn get_membership(&mut self) -> Result<MembershipState<C::NodeId, C::Node>, StorageError<C::NodeId>> {
+    pub async fn get_membership(
+        &mut self,
+    ) -> Result<MembershipState<C::NodeId, C::Node>, StorageError<C::NodeId>> {
         let (_, sm_mem) = self.state_machine.applied_state().await?;
 
         let sm_mem_next_index = sm_mem.log_id().next_index();
@@ -148,8 +153,12 @@ where
         // There 2 membership configs in logs.
         if log_mem.len() == 2 {
             return Ok(MembershipState::new(
-                Arc::new(EffectiveMembership::new_from_stored_membership(log_mem[0].clone())),
-                Arc::new(EffectiveMembership::new_from_stored_membership(log_mem[1].clone())),
+                Arc::new(EffectiveMembership::new_from_stored_membership(
+                    log_mem[0].clone(),
+                )),
+                Arc::new(EffectiveMembership::new_from_stored_membership(
+                    log_mem[1].clone(),
+                )),
             ));
         }
 

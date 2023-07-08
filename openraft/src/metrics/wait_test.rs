@@ -104,7 +104,12 @@ async fn test_wait() -> anyhow::Result<()> {
 
         assert_eq!(
             btreeset![1, 2],
-            got.membership_config.membership().get_joint_config().get(0).unwrap().clone()
+            got.membership_config
+                .membership()
+                .get_joint_config()
+                .get(0)
+                .unwrap()
+                .clone()
         );
     }
 
@@ -119,10 +124,15 @@ async fn test_wait() -> anyhow::Result<()> {
             let rst = tx.send(update);
             assert!(rst.is_ok());
         });
-        let got = w.snapshot(LogId::new(CommittedLeaderId::new(1, 0), 2), "snapshot").await?;
+        let got = w
+            .snapshot(LogId::new(CommittedLeaderId::new(1, 0), 2), "snapshot")
+            .await?;
         h.await?;
 
-        assert_eq!(Some(LogId::new(CommittedLeaderId::new(1, 0), 2)), got.snapshot);
+        assert_eq!(
+            Some(LogId::new(CommittedLeaderId::new(1, 0), 2)),
+            got.snapshot
+        );
     }
 
     tracing::info!("--- wait for snapshot, only index matches");
@@ -138,7 +148,9 @@ async fn test_wait() -> anyhow::Result<()> {
             // delay otherwise the channel will be closed thus the error is shutdown.
             sleep(Duration::from_millis(200)).await;
         });
-        let got = w.snapshot(LogId::new(CommittedLeaderId::new(1, 0), 2), "snapshot").await;
+        let got = w
+            .snapshot(LogId::new(CommittedLeaderId::new(1, 0), 2), "snapshot")
+            .await;
         h.await?;
         match got.unwrap_err() {
             WaitError::Timeout(t, _) => {
@@ -238,7 +250,10 @@ where
         purged: None,
 
         current_leader: None,
-        membership_config: Arc::new(StoredMembership::new(None, Membership::new(vec![btreeset! {}], None))),
+        membership_config: Arc::new(StoredMembership::new(
+            None,
+            Membership::new(vec![btreeset! {}], None),
+        )),
 
         snapshot: None,
         replication: None,

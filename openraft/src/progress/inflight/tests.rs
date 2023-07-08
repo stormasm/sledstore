@@ -171,7 +171,10 @@ fn test_inflight_conflict() -> anyhow::Result<()> {
             f.conflict(f.id(), 5).unwrap();
         });
         tracing::info!("res: {:?}", res);
-        assert!(res.is_err(), "conflict is not expected by Inflight::Snapshot");
+        assert!(
+            res.is_err(),
+            "conflict is not expected by Inflight::Snapshot"
+        );
     }
 
     Ok(())

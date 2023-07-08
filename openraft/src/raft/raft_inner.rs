@@ -57,7 +57,9 @@ where
         let send_res = self.tx_api.send(RaftMsg::ExternalCommand { cmd });
 
         if send_res.is_err() {
-            let fatal = self.get_core_stopped_error("sending external command to RaftCore", Some(cmd_desc)).await;
+            let fatal = self
+                .get_core_stopped_error("sending external command to RaftCore", Some(cmd_desc))
+                .await;
             return Err(fatal);
         }
         Ok(())

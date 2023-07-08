@@ -30,7 +30,8 @@
 mod raft_metrics;
 mod wait;
 
-#[cfg(test)] mod wait_test;
+#[cfg(test)]
+mod wait_test;
 
 use std::collections::BTreeMap;
 

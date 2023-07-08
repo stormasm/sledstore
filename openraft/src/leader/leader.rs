@@ -26,8 +26,7 @@ use crate::Vote;
 /// By combining candidate and leader into one stage, openraft does not need to lose leadership when
 /// a higher `leader_id`(roughly the `term` in original raft) is seen.
 /// But instead it will be able to upgrade its `leader_id` without losing leadership.
-#[derive(Clone, Debug)]
-#[derive(PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub(crate) struct Leading<NID: NodeId, QS: QuorumSet<NID>, I: Instant> {
     // TODO(1): set the utime,
     // TODO(1): update it when heartbeat is granted by a quorum
@@ -87,7 +86,11 @@ where
         self.voting.as_mut()
     }
 
-    pub(crate) fn initialize_voting(&mut self, last_log_id: Option<LogId<NID>>, now: I) -> &mut Voting<NID, QS, I> {
+    pub(crate) fn initialize_voting(
+        &mut self,
+        last_log_id: Option<LogId<NID>>,
+        now: I,
+    ) -> &mut Voting<NID, QS, I> {
         self.voting = Some(Voting::new(
             now,
             *self.vote.deref(),

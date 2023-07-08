@@ -13,14 +13,14 @@ use crate::StorageError;
 ///
 /// If it is not empty, the first one is `last_purged_log_id` and the last one is `last_log_id`.
 /// The last one may have the same leader id as the second last one.
-#[derive(Default, Debug, Clone)]
-#[derive(PartialEq, Eq)]
+#[derive(Default, Debug, Clone, PartialEq, Eq)]
 pub struct LogIdList<NID: NodeId> {
     key_log_ids: Vec<LogId<NID>>,
 }
 
 impl<NID> LogIdList<NID>
-where NID: NodeId
+where
+    NID: NodeId,
 {
     /// Load all log ids that are the first one proposed by a leader.
     ///
@@ -128,7 +128,10 @@ impl<NID: NodeId> LogIdList<NID> {
     /// Extends a list of `log_id` that are proposed by a same leader.
     ///
     /// The log ids in the input has to be continuous.
-    pub(crate) fn extend_from_same_leader<'a, LID: RaftLogId<NID> + 'a>(&mut self, new_ids: &[LID]) {
+    pub(crate) fn extend_from_same_leader<'a, LID: RaftLogId<NID> + 'a>(
+        &mut self,
+        new_ids: &[LID],
+    ) {
         if let Some(first) = new_ids.first() {
             let first_id = first.get_log_id();
             self.append(*first_id);
@@ -211,7 +214,9 @@ impl<NID: NodeId> LogIdList<NID> {
     /// Delete log ids from `at`, inclusive.
     #[allow(dead_code)]
     pub(crate) fn truncate(&mut self, at: u64) {
-        let res = self.key_log_ids.binary_search_by(|log_id| log_id.index.cmp(&at));
+        let res = self
+            .key_log_ids
+            .binary_search_by(|log_id| log_id.index.cmp(&at));
 
         let i = match res {
             Ok(i) => i,
@@ -251,7 +256,9 @@ impl<NID: NodeId> LogIdList<NID> {
             return;
         }
 
-        let res = self.key_log_ids.binary_search_by(|log_id| log_id.index.cmp(&upto.index));
+        let res = self
+            .key_log_ids
+            .binary_search_by(|log_id| log_id.index.cmp(&upto.index));
 
         match res {
             Ok(i) => {
@@ -271,7 +278,9 @@ impl<NID: NodeId> LogIdList<NID> {
     /// It will return `last_purged_log_id` if index is at the last purged index.
     #[allow(dead_code)]
     pub(crate) fn get(&self, index: u64) -> Option<LogId<NID>> {
-        let res = self.key_log_ids.binary_search_by(|log_id| log_id.index.cmp(&index));
+        let res = self
+            .key_log_ids
+            .binary_search_by(|log_id| log_id.index.cmp(&index));
 
         match res {
             Ok(i) => Some(LogId::new(self.key_log_ids[i].leader_id, index)),

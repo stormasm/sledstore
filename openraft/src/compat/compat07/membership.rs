@@ -20,7 +20,11 @@ pub struct Membership {
 impl Upgrade<crate::Membership<u64, crate::EmptyNode>> for or07::Membership {
     fn upgrade(self) -> crate::Membership<u64, crate::EmptyNode> {
         let configs = self.get_configs().clone();
-        let nodes = self.all_nodes().iter().map(|nid| (*nid, crate::EmptyNode::new())).collect::<BTreeMap<_, _>>();
+        let nodes = self
+            .all_nodes()
+            .iter()
+            .map(|nid| (*nid, crate::EmptyNode::new()))
+            .collect::<BTreeMap<_, _>>();
         crate::Membership::new(configs, nodes)
     }
 }

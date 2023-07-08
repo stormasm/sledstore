@@ -38,7 +38,12 @@ fn test_calc_purge_upto() -> anyhow::Result<()> {
         (None, Some(log_id(1, 1)), 1, Some(log_id(0, 0))),
         (None, Some(log_id(1, 1)), 2, None),
         //
-        (Some(log_id(0, 0)), Some(log_id(1, 1)), 0, Some(log_id(1, 1))),
+        (
+            Some(log_id(0, 0)),
+            Some(log_id(1, 1)),
+            0,
+            Some(log_id(1, 1)),
+        ),
         (Some(log_id(0, 0)), Some(log_id(1, 1)), 1, None),
         (Some(log_id(0, 0)), Some(log_id(1, 1)), 2, None),
         //
@@ -49,8 +54,18 @@ fn test_calc_purge_upto() -> anyhow::Result<()> {
         (None, Some(log_id(3, 4)), 4, Some(log_id(0, 0))),
         (None, Some(log_id(3, 4)), 5, None),
         //
-        (Some(log_id(1, 2)), Some(log_id(3, 4)), 0, Some(log_id(3, 4))),
-        (Some(log_id(1, 2)), Some(log_id(3, 4)), 1, Some(log_id(3, 3))),
+        (
+            Some(log_id(1, 2)),
+            Some(log_id(3, 4)),
+            0,
+            Some(log_id(3, 4)),
+        ),
+        (
+            Some(log_id(1, 2)),
+            Some(log_id(3, 4)),
+            1,
+            Some(log_id(3, 3)),
+        ),
         (Some(log_id(1, 2)), Some(log_id(3, 4)), 2, None),
         (Some(log_id(1, 2)), Some(log_id(3, 4)), 3, None),
         (Some(log_id(1, 2)), Some(log_id(3, 4)), 4, None),

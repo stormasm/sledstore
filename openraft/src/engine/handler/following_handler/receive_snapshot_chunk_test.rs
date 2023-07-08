@@ -25,7 +25,9 @@ fn eng() -> Engine<UTConfig> {
     let mut eng = Engine::default();
     eng.state.enable_validate = false; // Disable validation for incomplete state
 
-    eng.state.vote.update(TokioInstant::now(), Vote::new_committed(2, 1));
+    eng.state
+        .vote
+        .update(TokioInstant::now(), Vote::new_committed(2, 1));
     eng.state.server_state = eng.calc_server_state();
 
     eng
@@ -54,7 +56,8 @@ fn test_receive_snapshot_chunk_new_chunk() -> anyhow::Result<()> {
     let mut eng = eng();
     assert!(eng.state.snapshot_streaming.is_none());
 
-    eng.following_handler().receive_snapshot_chunk(make_req(0))?;
+    eng.following_handler()
+        .receive_snapshot_chunk(make_req(0))?;
 
     assert_eq!(
         Some(StreamingState {
@@ -80,7 +83,8 @@ fn test_receive_snapshot_chunk_continue_receive_chunk() -> anyhow::Result<()> {
         snapshot_id: "1-2-3-4".to_string(),
     });
 
-    eng.following_handler().receive_snapshot_chunk(make_req(2))?;
+    eng.following_handler()
+        .receive_snapshot_chunk(make_req(2))?;
 
     assert_eq!(
         Some(StreamingState {
@@ -107,7 +111,8 @@ fn test_receive_snapshot_chunk_diff_id_offset_0() -> anyhow::Result<()> {
         snapshot_id: "1-2-3-100".to_string(),
     });
 
-    eng.following_handler().receive_snapshot_chunk(make_req(0))?;
+    eng.following_handler()
+        .receive_snapshot_chunk(make_req(0))?;
 
     assert_eq!(
         Some(StreamingState {

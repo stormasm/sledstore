@@ -9,20 +9,25 @@ use crate::LogIdOptionExt;
 use crate::RaftState;
 use crate::RaftTypeConfig;
 
-#[cfg(test)] mod calc_purge_upto_test;
-#[cfg(test)] mod purge_log_test;
+#[cfg(test)]
+mod calc_purge_upto_test;
+#[cfg(test)]
+mod purge_log_test;
 
 /// Handle raft-log related operations
 pub(crate) struct LogHandler<'x, C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     pub(crate) config: &'x mut EngineConfig<C::NodeId>,
-    pub(crate) state: &'x mut RaftState<C::NodeId, C::Node, <C::AsyncRuntime as AsyncRuntime>::Instant>,
+    pub(crate) state:
+        &'x mut RaftState<C::NodeId, C::Node, <C::AsyncRuntime as AsyncRuntime>::Instant>,
     pub(crate) output: &'x mut EngineOutput<C>,
 }
 
 impl<'x, C> LogHandler<'x, C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     /// Purge log entries upto `RaftState.purge_upto()`, inclusive.
     #[tracing::instrument(level = "debug", skip_all)]
@@ -78,7 +83,12 @@ where C: RaftTypeConfig
         let max_keep = self.config.max_in_snapshot_log_to_keep;
         let batch_size = self.config.purge_batch_size;
 
-        let purge_end = self.state.snapshot_meta.last_log_id.next_index().saturating_sub(max_keep);
+        let purge_end = self
+            .state
+            .snapshot_meta
+            .last_log_id
+            .next_index()
+            .saturating_sub(max_keep);
 
         tracing::debug!(
             snapshot_last_log_id = debug(self.state.snapshot_meta.last_log_id),

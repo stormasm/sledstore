@@ -31,6 +31,9 @@ impl Upgrade<crate::StoredMembership<u64, crate::EmptyNode>> for or07::Effective
 
 impl Upgrade<crate::StoredMembership<u64, crate::EmptyNode>> for StoredMembership {
     fn upgrade(self) -> crate::StoredMembership<u64, crate::EmptyNode> {
-        crate::StoredMembership::new(self.log_id.map(|lid| lid.upgrade()), self.membership.upgrade())
+        crate::StoredMembership::new(
+            self.log_id.map(|lid| lid.upgrade()),
+            self.membership.upgrade(),
+        )
     }
 }

@@ -12,14 +12,16 @@ use crate::StorageIOError;
 
 /// A oneshot callback for completion of log io operation.
 pub struct LogFlushed<NID>
-where NID: NodeId
+where
+    NID: NodeId,
 {
     last_log_id: Option<LogId<NID>>,
     tx: oneshot::Sender<Result<Option<LogId<NID>>, io::Error>>,
 }
 
 impl<NID> LogFlushed<NID>
-where NID: NodeId
+where
+    NID: NodeId,
 {
     pub(crate) fn new(
         last_log_id: Option<LogId<NID>>,
@@ -51,14 +53,16 @@ where NID: NodeId
 
 /// A oneshot callback for completion of applying logs to state machine.
 pub struct LogApplied<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     last_log_id: LogId<C::NodeId>,
     tx: oneshot::Sender<Result<(LogId<C::NodeId>, Vec<C::R>), StorageIOError<C::NodeId>>>,
 }
 
 impl<C> LogApplied<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     #[allow(dead_code)]
     pub(crate) fn new(
@@ -80,13 +84,20 @@ where C: RaftTypeConfig
                 self.tx.send(Ok(resp))
             }
             Err(e) => {
-                tracing::error!("LogApplied error: {}, while applying upto {}", e, self.last_log_id);
+                tracing::error!(
+                    "LogApplied error: {}, while applying upto {}",
+                    e,
+                    self.last_log_id
+                );
                 self.tx.send(Err(e))
             }
         };
 
         if let Err(_e) = res {
-            tracing::error!("failed to send apply complete event, last_log_id: {}", self.last_log_id);
+            tracing::error!(
+                "failed to send apply complete event, last_log_id: {}",
+                self.last_log_id
+            );
         }
     }
 }

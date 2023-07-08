@@ -20,7 +20,11 @@ use crate::NodeId;
 /// It could be a joint of one, two or more configs, i.e., a quorum is a node set that is superset
 /// of a majority of every config.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 pub struct Membership<NID, N>
 where
     N: Node,
@@ -77,7 +81,10 @@ where
                 }
                 res.push(format!("{}", node_id));
 
-                let n = self.get_node(node_id).map(|x| format!("{:?}", x)).unwrap_or_else(|| "None".to_string());
+                let n = self
+                    .get_node(node_id)
+                    .map(|x| format!("{:?}", x))
+                    .unwrap_or_else(|| "None".to_string());
                 res.push(format!(":{{{}}}", n));
             }
             res.push("}".to_string());
@@ -95,7 +102,10 @@ where
 
             res.push(format!("{}", learner_id));
 
-            let n = self.get_node(learner_id).map(|x| format!("{:?}", x)).unwrap_or_else(|| "None".to_string());
+            let n = self
+                .get_node(learner_id)
+                .map(|x| format!("{:?}", x))
+                .unwrap_or_else(|| "None".to_string());
             res.push(format!(":{{{}}}", n));
         }
         res.push("]".to_string());
@@ -122,11 +132,16 @@ where
     /// - `BTreeMap<NodeId, Node>` provides nodes for every node id. Node ids that are not in
     ///   `configs` are learners.
     pub fn new<T>(config: Vec<BTreeSet<NID>>, nodes: T) -> Self
-    where T: IntoNodes<NID, N> {
+    where
+        T: IntoNodes<NID, N>,
+    {
         let voter_ids = config.as_joint().ids().collect::<BTreeSet<_>>();
         let nodes = Self::extend_nodes(nodes.into_nodes(), &voter_ids.into_nodes());
 
-        Membership { configs: config, nodes }
+        Membership {
+            configs: config,
+            nodes,
+        }
     }
 
     /// Check to see if the config is currently in joint consensus.
@@ -185,7 +200,9 @@ where
     /// Create a new Membership the same as [`Self::new()`], but does not add default value
     /// `Node::default()` if a voter id is not in `nodes`. Thus it may create an invalid instance.
     pub(crate) fn new_unchecked<T>(configs: Vec<BTreeSet<NID>>, nodes: T) -> Self
-    where T: IntoNodes<NID, N> {
+    where
+        T: IntoNodes<NID, N>,
+    {
         let nodes = nodes.into_nodes();
         Membership { configs, nodes }
     }
@@ -212,7 +229,8 @@ where
     /// - Every voter has a corresponding Node.
     pub(crate) fn ensure_valid(&self) -> Result<(), ChangeMembershipError<NID>> {
         self.ensure_non_empty_config()?;
-        self.ensure_voter_nodes().map_err(|nid| LearnerNotFound { node_id: nid })?;
+        self.ensure_voter_nodes()
+            .map_err(|nid| LearnerNotFound { node_id: nid })?;
         Ok(())
     }
 
@@ -265,7 +283,10 @@ where
     /// }
     /// ```
     pub(crate) fn next_coherent(&self, goal: BTreeSet<NID>, retain: bool) -> Self {
-        let config = Joint::from(self.configs.clone()).find_coherent(goal).children().clone();
+        let config = Joint::from(self.configs.clone())
+            .find_coherent(goal)
+            .children()
+            .clone();
 
         let mut nodes = self.nodes.clone();
 
@@ -310,10 +331,15 @@ where
                 self.next_coherent(new_voter_ids, retain)
             }
             ChangeMembers::RemoveVoters(remove_voter_ids) => {
-                let new_voter_ids = last.difference(&remove_voter_ids).copied().collect::<BTreeSet<_>>();
+                let new_voter_ids = last
+                    .difference(&remove_voter_ids)
+                    .copied()
+                    .collect::<BTreeSet<_>>();
                 self.next_coherent(new_voter_ids, retain)
             }
-            ChangeMembers::ReplaceAllVoters(all_voter_ids) => self.next_coherent(all_voter_ids, retain),
+            ChangeMembers::ReplaceAllVoters(all_voter_ids) => {
+                self.next_coherent(all_voter_ids, retain)
+            }
             ChangeMembers::AddNodes(add_nodes) => {
                 // When adding nodes, do not override existing node
                 for (node_id, node) in add_nodes.into_iter() {
@@ -388,7 +414,9 @@ mod tests {
         {
             let res = m().change(ChangeMembers::AddVoterIds(btreeset! {4}), true);
             assert_eq!(
-                Err(ChangeMembershipError::LearnerNotFound(LearnerNotFound { node_id: 4 })),
+                Err(ChangeMembershipError::LearnerNotFound(LearnerNotFound {
+                    node_id: 4
+                })),
                 res
             );
         }
@@ -432,7 +460,10 @@ mod tests {
         // Remove: become empty
         {
             let res = m().change(ChangeMembers::RemoveVoters(btreeset! {1,2}), true);
-            assert_eq!(Err(ChangeMembershipError::EmptyMembership(EmptyMembership {})), res);
+            assert_eq!(
+                Err(ChangeMembershipError::EmptyMembership(EmptyMembership {})),
+                res
+            );
         }
 
         // Remove: OK retain
@@ -544,7 +575,9 @@ mod tests {
         {
             let res = m().change(ChangeMembers::RemoveNodes(btreeset! {2}), false);
             assert_eq!(
-                Err(ChangeMembershipError::LearnerNotFound(LearnerNotFound { node_id: 2 })),
+                Err(ChangeMembershipError::LearnerNotFound(LearnerNotFound {
+                    node_id: 2
+                })),
                 res
             );
         }
@@ -563,7 +596,10 @@ mod tests {
 
         // ReplaceAllNodes: Ok
         {
-            let res = m().change(ChangeMembers::ReplaceAllNodes(btreemap! {1=>(),2=>(),4=>()}), false);
+            let res = m().change(
+                ChangeMembers::ReplaceAllNodes(btreemap! {1=>(),2=>(),4=>()}),
+                false,
+            );
             assert_eq!(
                 Ok(Membership::<u64, ()> {
                     configs: vec![btreeset! {1,2}],

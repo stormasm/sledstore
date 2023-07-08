@@ -57,7 +57,8 @@ fn test_following_handler_commit_entries_ge_accepted() -> anyhow::Result<()> {
     let l = eng.state.vote_ref().leader_id();
     eng.state.accepted = Accepted::new(*l, Some(log_id(1, 1, 2)));
 
-    eng.following_handler().commit_entries(Some(log_id(2, 1, 3)));
+    eng.following_handler()
+        .commit_entries(Some(log_id(2, 1, 3)));
 
     assert_eq!(Some(&log_id(1, 1, 2)), eng.state.committed());
     assert_eq!(
@@ -85,7 +86,8 @@ fn test_following_handler_commit_entries_le_accepted() -> anyhow::Result<()> {
     let l = eng.state.vote_ref().leader_id();
     eng.state.accepted = Accepted::new(*l, Some(log_id(3, 1, 4)));
 
-    eng.following_handler().commit_entries(Some(log_id(2, 1, 3)));
+    eng.following_handler()
+        .commit_entries(Some(log_id(2, 1, 3)));
 
     assert_eq!(Some(&log_id(2, 1, 3)), eng.state.committed());
     assert_eq!(

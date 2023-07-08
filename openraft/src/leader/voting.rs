@@ -10,8 +10,7 @@ use crate::NodeId;
 use crate::Vote;
 
 /// Voting state.
-#[derive(Clone, Debug)]
-#[derive(PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub(crate) struct Voting<NID, QS, I>
 where
     NID: NodeId,
@@ -54,7 +53,12 @@ where
     QS: QuorumSet<NID> + fmt::Debug + 'static,
     I: Instant,
 {
-    pub(crate) fn new(starting_time: I, vote: Vote<NID>, last_log_id: Option<LogId<NID>>, quorum_set: QS) -> Self {
+    pub(crate) fn new(
+        starting_time: I,
+        vote: Vote<NID>,
+        last_log_id: Option<LogId<NID>>,
+        quorum_set: QS,
+    ) -> Self {
         Self {
             starting_time,
             vote,
@@ -73,7 +77,10 @@ where
 
     /// Grant the vote by a node.
     pub(crate) fn grant_by(&mut self, target: &NID) -> bool {
-        let granted = *self.progress.update(target, true).expect("target not in quorum set");
+        let granted = *self
+            .progress
+            .update(target, true)
+            .expect("target not in quorum set");
 
         tracing::info!(voting = debug(&self), "{}", func_name!());
 
@@ -83,6 +90,9 @@ where
     /// Return the node ids that has granted this vote.
     #[allow(dead_code)]
     pub(crate) fn granters(&self) -> impl Iterator<Item = NID> + '_ {
-        self.progress().iter().filter(|(_, granted)| *granted).map(|(target, _)| *target)
+        self.progress()
+            .iter()
+            .filter(|(_, granted)| *granted)
+            .map(|(target, _)| *target)
     }
 }

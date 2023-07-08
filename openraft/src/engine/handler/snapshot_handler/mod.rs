@@ -10,19 +10,24 @@ use crate::RaftState;
 use crate::RaftTypeConfig;
 use crate::SnapshotMeta;
 
-#[cfg(test)] mod trigger_snapshot_test;
-#[cfg(test)] mod update_snapshot_test;
+#[cfg(test)]
+mod trigger_snapshot_test;
+#[cfg(test)]
+mod update_snapshot_test;
 
 /// Handle raft vote related operations
 pub(crate) struct SnapshotHandler<'st, 'out, C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
-    pub(crate) state: &'st mut RaftState<C::NodeId, C::Node, <C::AsyncRuntime as AsyncRuntime>::Instant>,
+    pub(crate) state:
+        &'st mut RaftState<C::NodeId, C::Node, <C::AsyncRuntime as AsyncRuntime>::Instant>,
     pub(crate) output: &'out mut EngineOutput<C>,
 }
 
 impl<'st, 'out, C> SnapshotHandler<'st, 'out, C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     /// Trigger building snapshot if there is no pending building job.
     #[tracing::instrument(level = "debug", skip_all)]
@@ -39,7 +44,8 @@ where C: RaftTypeConfig
 
         self.state.io_state.set_building_snapshot(true);
 
-        self.output.push_command(Command::from(sm::Command::build_snapshot()));
+        self.output
+            .push_command(Command::from(sm::Command::build_snapshot()));
         true
     }
 

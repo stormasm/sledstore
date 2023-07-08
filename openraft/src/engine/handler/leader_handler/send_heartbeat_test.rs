@@ -1,9 +1,12 @@
 use std::sync::Arc;
 
 use maplit::btreeset;
-#[allow(unused_imports)] use pretty_assertions::assert_eq;
-#[allow(unused_imports)] use pretty_assertions::assert_ne;
-#[allow(unused_imports)] use pretty_assertions::assert_str_eq;
+#[allow(unused_imports)]
+use pretty_assertions::assert_eq;
+#[allow(unused_imports)]
+use pretty_assertions::assert_ne;
+#[allow(unused_imports)]
+use pretty_assertions::assert_str_eq;
 
 use crate::engine::testing::UTConfig;
 use crate::engine::Command;
@@ -77,8 +80,12 @@ fn test_leader_send_heartbeat() -> anyhow::Result<()> {
     // No data to send, sending a heartbeat is to send empty RPC:
     {
         let l = eng.leader_handler()?;
-        let _ = l.leader.progress.update_with(&2, |ent| ent.update_matching(1, Some(log_id(2, 1, 3))).unwrap());
-        let _ = l.leader.progress.update_with(&3, |ent| ent.update_matching(1, Some(log_id(2, 1, 3))).unwrap());
+        let _ = l.leader.progress.update_with(&2, |ent| {
+            ent.update_matching(1, Some(log_id(2, 1, 3))).unwrap()
+        });
+        let _ = l.leader.progress.update_with(&3, |ent| {
+            ent.update_matching(1, Some(log_id(2, 1, 3))).unwrap()
+        });
     }
     eng.output.clear_commands();
     eng.leader_handler()?.send_heartbeat();

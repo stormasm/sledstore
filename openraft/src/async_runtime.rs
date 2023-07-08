@@ -37,7 +37,8 @@ pub trait AsyncRuntime: Debug + Default + Send + Sync + 'static {
 
     /// The timeout type used by [`Self::timeout`] and [`Self::timeout_at`] that enables the user
     /// to await the outcome of a [`Future`].
-    type Timeout<R, T: Future<Output = R> + OptionalSend>: Future<Output = Result<R, Self::TimeoutError>> + OptionalSend;
+    type Timeout<R, T: Future<Output = R> + OptionalSend>: Future<Output = Result<R, Self::TimeoutError>>
+        + OptionalSend;
 
     /// Spawn a new task.
     fn spawn<T>(future: T) -> Self::JoinHandle<T::Output>
@@ -52,10 +53,16 @@ pub trait AsyncRuntime: Debug + Default + Send + Sync + 'static {
     fn sleep_until(deadline: Self::Instant) -> Self::Sleep;
 
     /// Require a [`Future`] to complete before the specified duration has elapsed.
-    fn timeout<R, F: Future<Output = R> + OptionalSend>(duration: Duration, future: F) -> Self::Timeout<R, F>;
+    fn timeout<R, F: Future<Output = R> + OptionalSend>(
+        duration: Duration,
+        future: F,
+    ) -> Self::Timeout<R, F>;
 
     /// Require a [`Future`] to complete before the specified instant in time.
-    fn timeout_at<R, F: Future<Output = R> + OptionalSend>(deadline: Self::Instant, future: F) -> Self::Timeout<R, F>;
+    fn timeout_at<R, F: Future<Output = R> + OptionalSend>(
+        deadline: Self::Instant,
+        future: F,
+    ) -> Self::Timeout<R, F>;
 
     /// Check if the [`Self::JoinError`] is `panic`.
     fn is_panic(join_error: &Self::JoinError) -> bool;
@@ -103,12 +110,18 @@ impl AsyncRuntime for TokioRuntime {
     }
 
     #[inline]
-    fn timeout<R, F: Future<Output = R> + OptionalSend>(duration: Duration, future: F) -> Self::Timeout<R, F> {
+    fn timeout<R, F: Future<Output = R> + OptionalSend>(
+        duration: Duration,
+        future: F,
+    ) -> Self::Timeout<R, F> {
         tokio::time::timeout(duration, future)
     }
 
     #[inline]
-    fn timeout_at<R, F: Future<Output = R> + OptionalSend>(deadline: Self::Instant, future: F) -> Self::Timeout<R, F> {
+    fn timeout_at<R, F: Future<Output = R> + OptionalSend>(
+        deadline: Self::Instant,
+        future: F,
+    ) -> Self::Timeout<R, F> {
         tokio::time::timeout_at(deadline, future)
     }
 

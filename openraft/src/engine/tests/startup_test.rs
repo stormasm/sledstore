@@ -37,7 +37,10 @@ fn test_startup_as_leader() -> anyhow::Result<()> {
     // self.id==2 is a voter:
     eng.state
         .membership_state
-        .set_effective(Arc::new(EffectiveMembership::new(Some(log_id(2, 1, 3)), m23())));
+        .set_effective(Arc::new(EffectiveMembership::new(
+            Some(log_id(2, 1, 3)),
+            m23(),
+        )));
     // Committed vote makes it a leader at startup.
     eng.state.vote = UTime::new(TokioInstant::now(), Vote::new_committed(1, 2));
 
@@ -49,12 +52,15 @@ fn test_startup_as_leader() -> anyhow::Result<()> {
             //
             Command::BecomeLeader,
             Command::RebuildReplicationStreams {
-                targets: vec![(3, ProgressEntry {
-                    matching: None,
-                    curr_inflight_id: 0,
-                    inflight: Inflight::None,
-                    searching_end: 0
-                })]
+                targets: vec![(
+                    3,
+                    ProgressEntry {
+                        matching: None,
+                        curr_inflight_id: 0,
+                        inflight: Inflight::None,
+                        searching_end: 0
+                    }
+                )]
             }
         ],
         eng.output.take_commands()
@@ -69,7 +75,10 @@ fn test_startup_candidate_becomes_follower() -> anyhow::Result<()> {
     // self.id==2 is a voter:
     eng.state
         .membership_state
-        .set_effective(Arc::new(EffectiveMembership::new(Some(log_id(2, 1, 3)), m23())));
+        .set_effective(Arc::new(EffectiveMembership::new(
+            Some(log_id(2, 1, 3)),
+            m23(),
+        )));
     // Non-committed vote makes it a candidate at startup.
     eng.state.vote = UTime::new(TokioInstant::now(), Vote::new(1, 2));
 
@@ -86,7 +95,10 @@ fn test_startup_as_follower() -> anyhow::Result<()> {
     // self.id==2 is a voter:
     eng.state
         .membership_state
-        .set_effective(Arc::new(EffectiveMembership::new(Some(log_id(2, 1, 3)), m23())));
+        .set_effective(Arc::new(EffectiveMembership::new(
+            Some(log_id(2, 1, 3)),
+            m23(),
+        )));
 
     eng.startup();
 
@@ -102,7 +114,10 @@ fn test_startup_as_learner() -> anyhow::Result<()> {
     // self.id==2 is not a voter:
     eng.state
         .membership_state
-        .set_effective(Arc::new(EffectiveMembership::new(Some(log_id(2, 1, 3)), m34())));
+        .set_effective(Arc::new(EffectiveMembership::new(
+            Some(log_id(2, 1, 3)),
+            m34(),
+        )));
 
     eng.startup();
 

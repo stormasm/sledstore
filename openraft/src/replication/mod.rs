@@ -56,10 +56,12 @@ use crate::ToStorageResult;
 
 /// The handle to a spawned replication stream.
 pub(crate) struct ReplicationHandle<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     /// The spawn handle the `ReplicationCore` task.
-    pub(crate) join_handle: <C::AsyncRuntime as AsyncRuntime>::JoinHandle<Result<(), ReplicationClosed>>,
+    pub(crate) join_handle:
+        <C::AsyncRuntime as AsyncRuntime>::JoinHandle<Result<(), ReplicationClosed>>,
 
     /// The channel used for communicating with the replication task.
     pub(crate) tx_repl: mpsc::UnboundedSender<Replicate<C>>,
@@ -160,7 +162,10 @@ where
 
         let join_handle = C::AsyncRuntime::spawn(this.main().instrument(span));
 
-        ReplicationHandle { join_handle, tx_repl }
+        ReplicationHandle {
+            join_handle,
+            tx_repl,
+        }
     }
 
     #[tracing::instrument(level="debug", skip(self), fields(session=%self.session_id, target=display(self.target), cluster=%self.config.cluster_name))]
@@ -173,13 +178,21 @@ where
             let res = match action {
                 None => Ok(None),
                 Some(d) => {
-                    tracing::debug!(replication_data = display(&d), "{} send replication RPC", func_name!());
+                    tracing::debug!(
+                        replication_data = display(&d),
+                        "{} send replication RPC",
+                        func_name!()
+                    );
 
                     repl_id = d.request_id;
 
                     match d.payload {
-                        Payload::Logs(log_id_range) => self.send_log_entries(d.request_id, log_id_range).await,
-                        Payload::Snapshot(snapshot_rx) => self.stream_snapshot(d.request_id, snapshot_rx).await,
+                        Payload::Logs(log_id_range) => {
+                            self.send_log_entries(d.request_id, log_id_range).await
+                        }
+                        Payload::Snapshot(snapshot_rx) => {
+                            self.stream_snapshot(d.request_id, snapshot_rx).await
+                        }
                     }
                 }
             };
@@ -259,7 +272,10 @@ where
                     Duration::from_millis(500)
                 });
 
-                self.backoff_drain_events(<C::AsyncRuntime as AsyncRuntime>::Instant::now() + duration).await?;
+                self.backoff_drain_events(
+                    <C::AsyncRuntime as AsyncRuntime>::Instant::now() + duration,
+                )
+                .await?;
             }
 
             self.drain_events().await?;
@@ -322,7 +338,9 @@ where
 
         let the_timeout = Duration::from_millis(self.config.heartbeat_interval);
         let option = RPCOption::new(the_timeout);
-        let res = C::AsyncRuntime::timeout(the_timeout, self.network.append_entries(payload, option)).await;
+        let res =
+            C::AsyncRuntime::timeout(the_timeout, self.network.append_entries(payload, option))
+                .await;
 
         tracing::debug!("append_entries res: {:?}", res);
 
@@ -431,7 +449,10 @@ where
                         session_id: self.session_id,
                         request_id,
                         target: self.target,
-                        result: Ok(UTime::new(leader_time, ReplicationResult::Conflict(conflict))),
+                        result: Ok(UTime::new(
+                            leader_time,
+                            ReplicationResult::Conflict(conflict),
+                        )),
                     },
                 }
             });
@@ -474,7 +495,10 @@ where
                         session_id: self.session_id,
                         request_id,
                         target: self.target,
-                        result: Ok(UTime::new(leader_time, ReplicationResult::Matching(new_matching))),
+                        result: Ok(UTime::new(
+                            leader_time,
+                            ReplicationResult::Matching(new_matching),
+                        )),
                     },
                 }
             });
@@ -604,7 +628,10 @@ where
             Replicate::Data(d) => {
                 // TODO: Currently there is at most 1 in flight data. But in future RaftCore may send next data
                 //       actions without waiting for the previous to finish.
-                debug_assert!(self.next_action.is_none(), "there can not be two data action in flight");
+                debug_assert!(
+                    self.next_action.is_none(),
+                    "there can not be two data action in flight"
+                );
                 self.next_action = Some(d);
             }
         }
@@ -616,7 +643,11 @@ where
         request_id: Option<u64>,
         rx: oneshot::Receiver<Option<Snapshot<C>>>,
     ) -> Result<Option<Data<C>>, ReplicationError<C::NodeId, C::Node>> {
-        tracing::info!(request_id = display(request_id.display()), "{}", func_name!());
+        tracing::info!(
+            request_id = display(request_id.display()),
+            "{}",
+            func_name!()
+        );
 
         let snapshot = rx.await.map_err(|e| {
             let io_err = StorageIOError::read_snapshot(None, AnyError::error(e));
@@ -631,22 +662,36 @@ where
 
         let mut snapshot = match snapshot {
             None => {
-                let io_err = StorageIOError::read_snapshot(None, AnyError::error("snapshot not found"));
+                let io_err =
+                    StorageIOError::read_snapshot(None, AnyError::error("snapshot not found"));
                 let sto_err = StorageError::IO { source: io_err };
                 return Err(ReplicationError::StorageError(sto_err));
             }
             Some(x) => x,
         };
 
-        let err_x = || (ErrorSubject::Snapshot(Some(snapshot.meta.signature())), ErrorVerb::Read);
+        let err_x = || {
+            (
+                ErrorSubject::Snapshot(Some(snapshot.meta.signature())),
+                ErrorVerb::Read,
+            )
+        };
 
         let mut offset = 0;
-        let end = snapshot.snapshot.seek(SeekFrom::End(0)).await.sto_res(err_x)?;
+        let end = snapshot
+            .snapshot
+            .seek(SeekFrom::End(0))
+            .await
+            .sto_res(err_x)?;
         let mut buf = Vec::with_capacity(self.config.snapshot_max_chunk_size as usize);
 
         loop {
             // Build the RPC.
-            snapshot.snapshot.seek(SeekFrom::Start(offset)).await.sto_res(err_x)?;
+            snapshot
+                .snapshot
+                .seek(SeekFrom::Start(offset))
+                .await
+                .sto_res(err_x)?;
             let n_read = snapshot.snapshot.read_buf(&mut buf).await.sto_res(err_x)?;
 
             let leader_time = <C::AsyncRuntime as AsyncRuntime>::Instant::now();
@@ -678,7 +723,9 @@ where
 
             let option = RPCOption::new(snap_timeout);
 
-            let res = C::AsyncRuntime::timeout(snap_timeout, self.network.install_snapshot(req, option)).await;
+            let res =
+                C::AsyncRuntime::timeout(snap_timeout, self.network.install_snapshot(req, option))
+                    .await;
 
             let res = match res {
                 Ok(outer_res) => match outer_res {
@@ -747,7 +794,8 @@ where
 /// data.
 #[derive(Debug)]
 pub(crate) struct Data<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     /// The id of this replication request.
     ///
@@ -759,17 +807,27 @@ where C: RaftTypeConfig
 
 impl<C: RaftTypeConfig> fmt::Display for Data<C> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{{id: {}, payload: {}}}", self.request_id.display(), self.payload)
+        write!(
+            f,
+            "{{id: {}, payload: {}}}",
+            self.request_id.display(),
+            self.payload
+        )
     }
 }
 
 impl<C> MessageSummary<Data<C>> for Data<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     fn summary(&self) -> String {
         match &self.payload {
             Payload::Logs(log_id_range) => {
-                format!("Logs{{request_id={}, {}}}", self.request_id.display(), log_id_range)
+                format!(
+                    "Logs{{request_id={}, {}}}",
+                    self.request_id.display(),
+                    log_id_range
+                )
             }
             Payload::Snapshot(_) => {
                 format!("Snapshot{{request_id={}}}", self.request_id.display())
@@ -779,7 +837,8 @@ where C: RaftTypeConfig
 }
 
 impl<C> Data<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     fn new_logs(request_id: Option<u64>, log_id_range: LogIdRange<C::NodeId>) -> Self {
         Self {
@@ -788,7 +847,10 @@ where C: RaftTypeConfig
         }
     }
 
-    fn new_snapshot(request_id: Option<u64>, snapshot_rx: oneshot::Receiver<Option<Snapshot<C>>>) -> Self {
+    fn new_snapshot(
+        request_id: Option<u64>,
+        snapshot_rx: oneshot::Receiver<Option<Snapshot<C>>>,
+    ) -> Self {
         Self {
             request_id,
             payload: Payload::Snapshot(snapshot_rx),
@@ -800,14 +862,16 @@ where C: RaftTypeConfig
 ///
 /// Either a series of logs or a snapshot.
 pub(crate) enum Payload<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     Logs(LogIdRange<C::NodeId>),
     Snapshot(oneshot::Receiver<Option<Snapshot<C>>>),
 }
 
 impl<C> fmt::Display for Payload<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -822,7 +886,8 @@ where C: RaftTypeConfig
 }
 
 impl<C> fmt::Debug for Payload<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -845,7 +910,8 @@ pub(crate) enum ReplicationResult<NID: NodeId> {
 
 /// A replication request sent by RaftCore leader state to replication stream.
 pub(crate) enum Replicate<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     /// Inform replication stream to forward the committed log id to followers/learners.
     Committed(Option<LogId<C::NodeId>>),
@@ -858,19 +924,24 @@ where C: RaftTypeConfig
 }
 
 impl<C> Replicate<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     pub(crate) fn logs(id: Option<u64>, log_id_range: LogIdRange<C::NodeId>) -> Self {
         Self::Data(Data::new_logs(id, log_id_range))
     }
 
-    pub(crate) fn snapshot(id: Option<u64>, snapshot_rx: oneshot::Receiver<Option<Snapshot<C>>>) -> Self {
+    pub(crate) fn snapshot(
+        id: Option<u64>,
+        snapshot_rx: oneshot::Receiver<Option<Snapshot<C>>>,
+    ) -> Self {
         Self::Data(Data::new_snapshot(id, snapshot_rx))
     }
 }
 
 impl<C> MessageSummary<Replicate<C>> for Replicate<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     fn summary(&self) -> String {
         match self {

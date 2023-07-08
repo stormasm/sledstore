@@ -7,7 +7,8 @@ use crate::Vote;
 
 /// A message coming from the internal components.
 pub(crate) enum Notify<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     VoteResponse {
         target: C::NodeId,
@@ -40,7 +41,9 @@ where C: RaftTypeConfig
     Network { response: replication::Response<C> },
 
     /// Result of executing a command sent from state machine worker.
-    StateMachine { command_result: sm::CommandResult<C> },
+    StateMachine {
+        command_result: sm::CommandResult<C>,
+    },
 
     /// A tick event to wake up RaftCore to check timeout etc.
     Tick {
@@ -50,7 +53,8 @@ where C: RaftTypeConfig
 }
 
 impl<C> Notify<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     pub(crate) fn sm(command_result: sm::CommandResult<C>) -> Self {
         Self::StateMachine { command_result }
@@ -58,7 +62,8 @@ where C: RaftTypeConfig
 }
 
 impl<C> MessageSummary<Notify<C>> for Notify<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     fn summary(&self) -> String {
         match self {
@@ -67,7 +72,12 @@ where C: RaftTypeConfig
                 resp,
                 sender_vote: vote,
             } => {
-                format!("VoteResponse: from: {}: {}, res-vote: {}", target, resp.summary(), vote)
+                format!(
+                    "VoteResponse: from: {}: {}, res-vote: {}",
+                    target,
+                    resp.summary(),
+                    vote
+                )
             }
             Self::HigherVote {
                 ref target,

@@ -18,25 +18,30 @@ use crate::RaftState;
 use crate::RaftTypeConfig;
 use crate::Vote;
 
-#[cfg(test)] mod accept_vote_test;
-#[cfg(test)] mod handle_message_vote_test;
+#[cfg(test)]
+mod accept_vote_test;
+#[cfg(test)]
+mod handle_message_vote_test;
 
 /// Handle raft vote related operations
 ///
 /// A `vote` defines the state of a openraft node.
 /// See [`RaftState::calc_server_state`] .
 pub(crate) struct VoteHandler<'st, C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     pub(crate) config: &'st EngineConfig<C::NodeId>,
-    pub(crate) state: &'st mut RaftState<C::NodeId, C::Node, <C::AsyncRuntime as AsyncRuntime>::Instant>,
+    pub(crate) state:
+        &'st mut RaftState<C::NodeId, C::Node, <C::AsyncRuntime as AsyncRuntime>::Instant>,
     pub(crate) output: &'st mut EngineOutput<C>,
     pub(crate) internal_server_state:
         &'st mut InternalServerState<C::NodeId, <C::AsyncRuntime as AsyncRuntime>::Instant>,
 }
 
 impl<'st, C> VoteHandler<'st, C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     /// Validate and accept the input `vote` and send result via `tx`.
     ///
@@ -86,14 +91,21 @@ where C: RaftTypeConfig
     ///
     /// Note: This method does not check last-log-id. handle-vote-request has to deal with
     /// last-log-id itself.
-    pub(crate) fn update_vote(&mut self, vote: &Vote<C::NodeId>) -> Result<(), RejectVoteRequest<C::NodeId>> {
+    pub(crate) fn update_vote(
+        &mut self,
+        vote: &Vote<C::NodeId>,
+    ) -> Result<(), RejectVoteRequest<C::NodeId>> {
         // Partial ord compare:
         // Vote does not has to be total ord.
         // `!(a >= b)` does not imply `a < b`.
         if vote >= self.state.vote_ref() {
             // Ok
         } else {
-            tracing::info!("vote {} is rejected by local vote: {}", vote, self.state.vote_ref());
+            tracing::info!(
+                "vote {} is rejected by local vote: {}",
+                vote,
+                self.state.vote_ref()
+            );
             return Err(RejectVoteRequest::ByVote(*self.state.vote_ref()));
         }
         tracing::debug!(%vote, "vote is changing to" );
@@ -101,12 +113,20 @@ where C: RaftTypeConfig
         // Grant the vote
 
         if vote > self.state.vote_ref() {
-            tracing::info!("vote is changing from {} to {}", self.state.vote_ref(), vote);
+            tracing::info!(
+                "vote is changing from {} to {}",
+                self.state.vote_ref(),
+                vote
+            );
 
-            self.state.vote.update(<C::AsyncRuntime as AsyncRuntime>::Instant::now(), *vote);
+            self.state
+                .vote
+                .update(<C::AsyncRuntime as AsyncRuntime>::Instant::now(), *vote);
             self.output.push_command(Command::SaveVote { vote: *vote });
         } else {
-            self.state.vote.touch(<C::AsyncRuntime as AsyncRuntime>::Instant::now());
+            self.state
+                .vote
+                .touch(<C::AsyncRuntime as AsyncRuntime>::Instant::now());
         }
 
         // Update vote related timer and lease.
@@ -173,7 +193,12 @@ where C: RaftTypeConfig
 
         debug_assert!(
             self.state.vote_ref().leader_id().voted_for() != Some(self.config.id)
-                || !self.state.membership_state.effective().membership().is_voter(&self.config.id),
+                || !self
+                    .state
+                    .membership_state
+                    .effective()
+                    .membership()
+                    .is_voter(&self.config.id),
             "It must hold: vote is not mine, or I am not a voter(leader just left the cluster)"
         );
 

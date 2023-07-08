@@ -6,19 +6,23 @@ use crate::RaftState;
 use crate::RaftTypeConfig;
 use crate::ServerState;
 
-#[cfg(test)] mod update_server_state_test;
+#[cfg(test)]
+mod update_server_state_test;
 
 /// Handle raft server-state related operations
 pub(crate) struct ServerStateHandler<'st, C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     pub(crate) config: &'st EngineConfig<C::NodeId>,
-    pub(crate) state: &'st mut RaftState<C::NodeId, C::Node, <C::AsyncRuntime as AsyncRuntime>::Instant>,
+    pub(crate) state:
+        &'st mut RaftState<C::NodeId, C::Node, <C::AsyncRuntime as AsyncRuntime>::Instant>,
     pub(crate) output: &'st mut EngineOutput<C>,
 }
 
 impl<'st, C> ServerStateHandler<'st, C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     /// Re-calculate the server-state, if it changed, update the `server_state` field and dispatch
     /// commands to inform a runtime.

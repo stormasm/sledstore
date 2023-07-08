@@ -10,11 +10,15 @@ use proc_macro::TokenStream;
 #[proc_macro_attribute]
 pub fn add_async_trait(_attr: TokenStream, item: TokenStream) -> TokenStream {
     if cfg!(feature = "singlethreaded") {
-        let mut output = "#[async_trait::async_trait(?Send)]".parse::<TokenStream>().unwrap();
+        let mut output = "#[async_trait::async_trait(?Send)]"
+            .parse::<TokenStream>()
+            .unwrap();
         output.extend(item);
         output
     } else {
-        let mut output = "#[async_trait::async_trait]".parse::<TokenStream>().unwrap();
+        let mut output = "#[async_trait::async_trait]"
+            .parse::<TokenStream>()
+            .unwrap();
         output.extend(item);
         output
     }

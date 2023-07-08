@@ -19,8 +19,7 @@ pub(crate) type LeaderQuorumSet<NID> = Joint<NID, Vec<NID>, Vec<Vec<NID>>>;
 /// - A following state just receives replication from a leader. A follower that is one of the
 ///   member will be able to become leader. A following state that is not a member is just a
 ///   learner.
-#[derive(Clone, Debug)]
-#[derive(PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 #[allow(clippy::large_enum_variant)]
 // TODO(9): consider moving Leader to a Box
 // TODO(9): Make InternalServerState an Option, separate Leading(Proposer) role and

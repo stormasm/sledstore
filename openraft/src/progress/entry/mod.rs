@@ -18,8 +18,7 @@ use crate::LogIdOptionExt;
 use crate::NodeId;
 
 /// State of replication to a target node.
-#[derive(Clone, Copy, Debug)]
-#[derive(PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) struct ProgressEntry<NID: NodeId> {
     /// The id of the last matching log on the target following node.
     pub(crate) matching: Option<LogId<NID>>,
@@ -111,7 +110,11 @@ impl<NID: NodeId> ProgressEntry<NID> {
         Ok(())
     }
 
-    pub(crate) fn update_conflicting(&mut self, request_id: u64, conflict: u64) -> Result<(), InflightError> {
+    pub(crate) fn update_conflicting(
+        &mut self,
+        request_id: u64,
+        conflict: u64,
+    ) -> Result<(), InflightError> {
         tracing::debug!(
             self = debug(&self),
             request_id = display(request_id),
@@ -159,7 +162,8 @@ impl<NID: NodeId> ProgressEntry<NID> {
         // Replicate by snapshot.
         if self.searching_end < purge_upto_next {
             self.curr_inflight_id += 1;
-            self.inflight = Inflight::snapshot(snapshot_last.copied()).with_id(self.curr_inflight_id);
+            self.inflight =
+                Inflight::snapshot(snapshot_last.copied()).with_id(self.curr_inflight_id);
             return Ok(&self.inflight);
         }
 
@@ -250,4 +254,5 @@ impl<NID: NodeId> Validate for ProgressEntry<NID> {
     }
 }
 
-#[cfg(test)] mod tests;
+#[cfg(test)]
+mod tests;

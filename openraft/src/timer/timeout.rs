@@ -65,7 +65,11 @@ impl RaftTimer for Timeout {
             inner: inner.clone(),
         };
 
-        tokio::spawn(inner.sleep_loop(rx, callback).instrument(trace_span!("timeout-loop").or_current()));
+        tokio::spawn(
+            inner
+                .sleep_loop(rx, callback)
+                .instrument(trace_span!("timeout-loop").or_current()),
+        );
 
         t
     }
@@ -75,7 +79,9 @@ impl RaftTimer for Timeout {
 
         let new_at = since_init.as_micros() as u64;
 
-        self.inner.relative_deadline.fetch_max(new_at, Ordering::Relaxed);
+        self.inner
+            .relative_deadline
+            .fetch_max(new_at, Ordering::Relaxed);
     }
 }
 
@@ -83,7 +89,11 @@ impl TimeoutInner {
     /// Sleep until the deadline and send callback if the deadline is not changed.
     /// Otherwise, sleep again.
     #[tracing::instrument(level = "debug", skip_all)]
-    pub(crate) async fn sleep_loop<F: FnOnce() + Send + 'static>(self: Arc<Self>, rx: Receiver<()>, callback: F) {
+    pub(crate) async fn sleep_loop<F: FnOnce() + Send + 'static>(
+        self: Arc<Self>,
+        rx: Receiver<()>,
+        callback: F,
+    ) {
         let mut wake_up_at = None;
 
         let mut rx = rx;

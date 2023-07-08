@@ -25,8 +25,10 @@ use crate::RaftState;
 use crate::RaftTypeConfig;
 use crate::ServerState;
 
-#[cfg(test)] mod append_membership_test;
-#[cfg(test)] mod update_matching_test;
+#[cfg(test)]
+mod append_membership_test;
+#[cfg(test)]
+mod update_matching_test;
 
 /// Handle replication operations.
 ///
@@ -37,27 +39,32 @@ use crate::ServerState;
 /// - Purging in-snapshot logs;
 /// - etc
 pub(crate) struct ReplicationHandler<'x, C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     pub(crate) config: &'x mut EngineConfig<C::NodeId>,
-    pub(crate) leader:
-        &'x mut Leading<C::NodeId, LeaderQuorumSet<C::NodeId>, <C::AsyncRuntime as AsyncRuntime>::Instant>,
-    pub(crate) state: &'x mut RaftState<C::NodeId, C::Node, <C::AsyncRuntime as AsyncRuntime>::Instant>,
+    pub(crate) leader: &'x mut Leading<
+        C::NodeId,
+        LeaderQuorumSet<C::NodeId>,
+        <C::AsyncRuntime as AsyncRuntime>::Instant,
+    >,
+    pub(crate) state:
+        &'x mut RaftState<C::NodeId, C::Node, <C::AsyncRuntime as AsyncRuntime>::Instant>,
     pub(crate) output: &'x mut EngineOutput<C>,
 }
 
 /// An option about whether to send an RPC to follower/learner even when there is no data to send.
 ///
 /// Sending none data serves as a heartbeat.
-#[derive(Debug)]
-#[derive(PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub(crate) enum SendNone {
     False,
     True,
 }
 
 impl<'x, C> ReplicationHandler<'x, C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     /// Append a blank log.
     ///
@@ -79,8 +86,16 @@ where C: RaftTypeConfig
     ///
     /// It is called by the leader when a new membership log is appended to log store.
     #[tracing::instrument(level = "debug", skip_all)]
-    pub(crate) fn append_membership(&mut self, log_id: &LogId<C::NodeId>, m: &Membership<C::NodeId, C::Node>) {
-        tracing::debug!("update effective membership: log_id:{} {}", log_id, m.summary());
+    pub(crate) fn append_membership(
+        &mut self,
+        log_id: &LogId<C::NodeId>,
+        m: &Membership<C::NodeId, C::Node>,
+    ) {
+        tracing::debug!(
+            "update effective membership: log_id:{} {}",
+            log_id,
+            m.summary()
+        );
 
         debug_assert!(
             self.state.server_state == ServerState::Leader,
@@ -91,7 +106,9 @@ where C: RaftTypeConfig
             "Only leader is allowed to call update_effective_membership()"
         );
 
-        self.state.membership_state.append(EffectiveMembership::new_arc(Some(*log_id), m.clone()));
+        self.state
+            .membership_state
+            .append(EffectiveMembership::new_arc(Some(*log_id), m.clone()));
 
         // TODO(9): currently only a leader has replication setup.
         //       It's better to setup replication for both leader and candidate.
@@ -122,15 +139,21 @@ where C: RaftTypeConfig
 
             let old_progress = self.leader.progress.clone();
 
-            self.leader.progress =
-                old_progress.upgrade_quorum_set(em.membership().to_quorum_set(), &learner_ids, default_v);
+            self.leader.progress = old_progress.upgrade_quorum_set(
+                em.membership().to_quorum_set(),
+                &learner_ids,
+                default_v,
+            );
         }
 
         {
             let old_progress = self.leader.clock_progress.clone();
 
-            self.leader.clock_progress =
-                old_progress.upgrade_quorum_set(em.membership().to_quorum_set(), &learner_ids, None);
+            self.leader.clock_progress = old_progress.upgrade_quorum_set(
+                em.membership().to_quorum_set(),
+                &learner_ids,
+                None,
+            );
         }
     }
 
@@ -198,7 +221,12 @@ where C: RaftTypeConfig
     /// Update progress when replicated data(logs or snapshot) matches on follower/learner and is
     /// accepted.
     #[tracing::instrument(level = "debug", skip_all)]
-    pub(crate) fn update_matching(&mut self, node_id: C::NodeId, inflight_id: u64, log_id: Option<LogId<C::NodeId>>) {
+    pub(crate) fn update_matching(
+        &mut self,
+        node_id: C::NodeId,
+        inflight_id: u64,
+        log_id: Option<LogId<C::NodeId>>,
+    ) {
         tracing::debug!(
             node_id = display(node_id),
             inflight_id = display(inflight_id),
@@ -207,7 +235,10 @@ where C: RaftTypeConfig
             func_name!()
         );
 
-        debug_assert!(log_id.is_some(), "a valid update can never set matching to None");
+        debug_assert!(
+            log_id.is_some(),
+            "a valid update can never set matching to None"
+        );
 
         // The value granted by a quorum may not yet be a committed.
         // A committed is **granted** and also is in current term.
@@ -223,7 +254,10 @@ where C: RaftTypeConfig
             })
             .expect("it should always update existing progress");
 
-        tracing::debug!(granted = display(granted.display()), "granted after updating progress");
+        tracing::debug!(
+            granted = display(granted.display()),
+            "granted after updating progress"
+        );
 
         self.try_commit_granted(granted);
     }
@@ -235,7 +269,11 @@ where C: RaftTypeConfig
     pub(crate) fn try_commit_granted(&mut self, granted: Option<LogId<C::NodeId>>) {
         // Only when the log id is proposed by current leader, it is committed.
         if let Some(c) = granted {
-            if !self.state.vote_ref().is_same_leader(c.committed_leader_id()) {
+            if !self
+                .state
+                .vote_ref()
+                .is_same_leader(c.committed_leader_id())
+            {
                 return;
             }
         }
@@ -261,7 +299,12 @@ where C: RaftTypeConfig
     /// Update progress when replicated data(logs or snapshot) does not match follower/learner state
     /// and is rejected.
     #[tracing::instrument(level = "debug", skip_all)]
-    pub(crate) fn update_conflicting(&mut self, target: C::NodeId, inflight_id: u64, conflict: LogId<C::NodeId>) {
+    pub(crate) fn update_conflicting(
+        &mut self,
+        target: C::NodeId,
+        inflight_id: u64,
+        conflict: LogId<C::NodeId>,
+    ) {
         // TODO(2): test it?
 
         let prog_entry = self.leader.progress.get_mut(&target).unwrap();
@@ -274,7 +317,9 @@ where C: RaftTypeConfig
             inflight_id
         );
 
-        prog_entry.update_conflicting(inflight_id, conflict.index).unwrap();
+        prog_entry
+            .update_conflicting(inflight_id, conflict.index)
+            .unwrap();
     }
 
     /// Update replication progress when a response is received.
@@ -283,7 +328,10 @@ where C: RaftTypeConfig
         &mut self,
         target: C::NodeId,
         request_id: u64,
-        repl_res: Result<UTime<ReplicationResult<C::NodeId>, <C::AsyncRuntime as AsyncRuntime>::Instant>, String>,
+        repl_res: Result<
+            UTime<ReplicationResult<C::NodeId>, <C::AsyncRuntime as AsyncRuntime>::Instant>,
+            String,
+        >,
     ) {
         // TODO(2): test
 
@@ -356,7 +404,8 @@ where C: RaftTypeConfig
                 targets.push((*target, *prog_entry));
             }
         }
-        self.output.push_command(Command::RebuildReplicationStreams { targets });
+        self.output
+            .push_command(Command::RebuildReplicationStreams { targets });
     }
 
     /// Initiate replication for every target that is not sending data in flight.
@@ -400,7 +449,11 @@ where C: RaftTypeConfig
     }
 
     #[tracing::instrument(level = "debug", skip_all)]
-    pub(crate) fn send_to_target(output: &mut EngineOutput<C>, target: &C::NodeId, inflight: &Inflight<C::NodeId>) {
+    pub(crate) fn send_to_target(
+        output: &mut EngineOutput<C>,
+        target: &C::NodeId,
+        inflight: &Inflight<C::NodeId>,
+    ) {
         output.push_command(Command::Replicate {
             target: *target,
             req: *inflight,

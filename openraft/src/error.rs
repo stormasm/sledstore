@@ -29,7 +29,8 @@ use crate::Vote;
     serde(bound = "E:serde::Serialize + for <'d> serde::Deserialize<'d>")
 )]
 pub enum RaftError<NID, E = Infallible>
-where NID: NodeId
+where
+    NID: NodeId,
 {
     #[error(transparent)]
     APIError(E),
@@ -102,9 +103,14 @@ where
 
 /// Fatal is unrecoverable and shuts down raft at once.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 pub enum Fatal<NID>
-where NID: NodeId
+where
+    NID: NodeId,
 {
     #[error(transparent)]
     StorageError(#[from] StorageError<NID>),
@@ -118,9 +124,12 @@ where NID: NodeId
 }
 
 // TODO: remove
-#[derive(Debug, Clone, thiserror::Error, derive_more::TryInto)]
-#[derive(PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[derive(Debug, Clone, thiserror::Error, derive_more::TryInto, PartialEq, Eq)]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 pub enum InstallSnapshotError {
     #[error(transparent)]
     SnapshotMismatch(#[from] SnapshotMismatch),
@@ -128,7 +137,11 @@ pub enum InstallSnapshotError {
 
 /// An error related to a is_leader request.
 #[derive(Debug, Clone, thiserror::Error, derive_more::TryInto)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 pub enum CheckIsLeaderError<NID, N>
 where
     NID: NodeId,
@@ -155,9 +168,12 @@ where
 }
 
 /// An error related to a client write request.
-#[derive(Debug, Clone, thiserror::Error, derive_more::TryInto)]
-#[derive(PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[derive(Debug, Clone, thiserror::Error, derive_more::TryInto, PartialEq, Eq)]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 pub enum ClientWriteError<NID, N>
 where
     NID: NodeId,
@@ -186,7 +202,11 @@ where
 
 /// The set of errors which may take place when requesting to propose a config change.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 pub enum ChangeMembershipError<NID: NodeId> {
     #[error(transparent)]
     InProgress(#[from] InProgress<NID>),
@@ -200,7 +220,11 @@ pub enum ChangeMembershipError<NID: NodeId> {
 
 /// The set of errors which may take place when initializing a pristine Raft node.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error, derive_more::TryInto)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 pub enum InitializeError<NID, N>
 where
     NID: NodeId,
@@ -272,7 +296,9 @@ where
 {
     /// Return a reference to ForwardToLeader error if Self::RemoteError contains one.
     pub fn forward_to_leader(&self) -> Option<&ForwardToLeader<NID, N>>
-    where E: TryAsRef<ForwardToLeader<NID, N>> {
+    where
+        E: TryAsRef<ForwardToLeader<NID, N>>,
+    {
         match self {
             RPCError::Timeout(_) => None,
             RPCError::Unreachable(_) => None,
@@ -311,7 +337,11 @@ impl<NID: NodeId, N: Node, T: Error> RemoteError<NID, N, T> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 #[error("seen a higher vote: {higher} GT mine: {mine}")]
 pub struct HigherVote<NID: NodeId> {
     pub higher: Vote<NID>,
@@ -323,7 +353,11 @@ pub struct HigherVote<NID: NodeId> {
 ///
 /// Unlike [`Unreachable`], which indicates a error that should backoff before retrying.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 #[error("NetworkError: {source}")]
 pub struct NetworkError {
     #[from]
@@ -344,7 +378,11 @@ impl NetworkError {
 /// It is similar to [`NetworkError`] but indicating a backoff.
 /// When a [`NetworkError`] is returned, Openraft will retry immediately.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 #[error("Unreachable node: {source}")]
 pub struct Unreachable {
     #[from]
@@ -360,7 +398,11 @@ impl Unreachable {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 #[error("timeout after {timeout:?} when {action} {id}->{target}")]
 pub struct Timeout<NID: NodeId> {
     pub action: RPCTypes,
@@ -370,7 +412,11 @@ pub struct Timeout<NID: NodeId> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 #[error("store has no log at: {index:?}, last purged: {last_purged_log_id:?}")]
 pub struct LackEntry<NID: NodeId> {
     pub index: Option<u64>,
@@ -378,7 +424,11 @@ pub struct LackEntry<NID: NodeId> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 #[error("has to forward request to: {leader_id:?}, {leader_node:?}")]
 pub struct ForwardToLeader<NID, N>
 where
@@ -410,7 +460,11 @@ where
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 #[error("snapshot segment id mismatch, expect: {expect}, got: {got}")]
 pub struct SnapshotMismatch {
     pub expect: SnapshotSegmentId,
@@ -418,7 +472,11 @@ pub struct SnapshotMismatch {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 #[error("not enough for a quorum, cluster: {cluster}, got: {got:?}")]
 pub struct QuorumNotEnough<NID: NodeId> {
     pub cluster: String,
@@ -426,7 +484,11 @@ pub struct QuorumNotEnough<NID: NodeId> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 #[error("the cluster is already undergoing a configuration change at log {membership_log_id:?}, last committed membership log id: {committed:?}")]
 pub struct InProgress<NID: NodeId> {
     pub committed: Option<LogId<NID>>,
@@ -434,14 +496,22 @@ pub struct InProgress<NID: NodeId> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 #[error("Learner {node_id} not found: add it as learner before adding it as a voter")]
 pub struct LearnerNotFound<NID: NodeId> {
     pub node_id: NID,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 #[error("not allowed to initialize due to current raft state: last_log_id: {last_log_id:?} vote: {vote}")]
 pub struct NotAllowed<NID: NodeId> {
     pub last_log_id: Option<LogId<NID>>,
@@ -449,7 +519,11 @@ pub struct NotAllowed<NID: NodeId> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 #[error("node {node_id} has to be a member. membership:{membership:?}")]
 pub struct NotInMembers<NID, N>
 where
@@ -477,7 +551,11 @@ pub enum Infallible {}
 pub enum NoForward {}
 
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 pub(crate) enum RejectVoteRequest<NID: NodeId> {
     #[error("reject vote request by a greater vote: {0}")]
     ByVote(Vote<NID>),
@@ -503,7 +581,9 @@ pub(crate) enum RejectAppendEntries<NID: NodeId> {
     #[error("reject AppendEntries by a greater vote: {0}")]
     ByVote(Vote<NID>),
 
-    #[error("reject AppendEntries because of conflicting log-id: {local:?}; expect to be: {expect:?}")]
+    #[error(
+        "reject AppendEntries because of conflicting log-id: {local:?}; expect to be: {expect:?}"
+    )]
     ByConflictingLogId {
         expect: LogId<NID>,
         local: Option<LogId<NID>>,
@@ -527,7 +607,10 @@ impl<NID: NodeId> From<Result<(), RejectAppendEntries<NID>>> for AppendEntriesRe
             Ok(_) => AppendEntriesResponse::Success,
             Err(e) => match e {
                 RejectAppendEntries::ByVote(v) => AppendEntriesResponse::HigherVote(v),
-                RejectAppendEntries::ByConflictingLogId { expect: _, local: _ } => AppendEntriesResponse::Conflict,
+                RejectAppendEntries::ByConflictingLogId {
+                    expect: _,
+                    local: _,
+                } => AppendEntriesResponse::Conflict,
             },
         }
     }

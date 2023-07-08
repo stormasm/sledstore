@@ -35,13 +35,11 @@ pub fn check_range_matches_entries<C: RaftTypeConfig, RB: RangeBounds<u64> + Deb
 
         if let Some(want) = want_first {
             if first != want_first {
-                return Err(
-                    DefensiveError::new(ErrorSubject::LogIndex(want), Violation::LogIndexNotFound {
-                        want,
-                        got: first,
-                    })
-                    .into(),
-                );
+                return Err(DefensiveError::new(
+                    ErrorSubject::LogIndex(want),
+                    Violation::LogIndexNotFound { want, got: first },
+                )
+                .into());
             }
         }
     }
@@ -51,13 +49,11 @@ pub fn check_range_matches_entries<C: RaftTypeConfig, RB: RangeBounds<u64> + Deb
 
         if let Some(want) = want_last {
             if last != want_last {
-                return Err(
-                    DefensiveError::new(ErrorSubject::LogIndex(want), Violation::LogIndexNotFound {
-                        want,
-                        got: last,
-                    })
-                    .into(),
-                );
+                return Err(DefensiveError::new(
+                    ErrorSubject::LogIndex(want),
+                    Violation::LogIndexNotFound { want, got: last },
+                )
+                .into());
             }
         }
     }

@@ -3,8 +3,7 @@ use crate::NodeId;
 use crate::SnapshotId;
 
 /// A global unique id of install-snapshot request.
-#[derive(Debug, Clone)]
-#[derive(PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct SnapshotRequestId<NID: NodeId> {
     pub(crate) leader_id: LeaderId<NID>,
     pub(crate) snapshot_id: SnapshotId,

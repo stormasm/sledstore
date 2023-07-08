@@ -13,8 +13,7 @@ use crate::NodeId;
 /// A log id range of continuous series of log entries.
 ///
 /// The range of log to send is left open right close: `(prev_log_id, last_log_id]`.
-#[derive(Clone, Copy, Debug)]
-#[derive(PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) struct LogIdRange<NID: NodeId> {
     /// The prev log id before the first to send, exclusive.
     pub(crate) prev_log_id: Option<LogId<NID>>,
@@ -25,7 +24,12 @@ pub(crate) struct LogIdRange<NID: NodeId> {
 
 impl<NID: NodeId> Display for LogIdRange<NID> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "({}, {}]", self.prev_log_id.summary(), self.last_log_id.summary())
+        write!(
+            f,
+            "({}, {}]",
+            self.prev_log_id.summary(),
+            self.last_log_id.summary()
+        )
     }
 }
 

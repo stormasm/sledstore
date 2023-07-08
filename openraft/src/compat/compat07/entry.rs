@@ -29,7 +29,9 @@ where
     }
 }
 
-impl<C: crate::RaftTypeConfig<NodeId = u64, Node = crate::EmptyNode>> Upgrade<crate::Entry<C>> for Entry<C> {
+impl<C: crate::RaftTypeConfig<NodeId = u64, Node = crate::EmptyNode>> Upgrade<crate::Entry<C>>
+    for Entry<C>
+{
     fn upgrade(self) -> crate::Entry<C> {
         crate::Entry {
             log_id: self.log_id.upgrade(),

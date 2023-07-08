@@ -5,9 +5,12 @@ use crate::SnapshotMeta;
 use crate::Vote;
 
 /// An RPC sent by the Raft leader to send chunks of a snapshot to a follower (§7).
-#[derive(Clone, Debug)]
-#[derive(PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 pub struct InstallSnapshotRequest<C: RaftTypeConfig> {
     pub vote: Vote<C::NodeId>,
 
@@ -37,11 +40,13 @@ impl<C: RaftTypeConfig> MessageSummary<InstallSnapshotRequest<C>> for InstallSna
 }
 
 /// The response to an `InstallSnapshotRequest`.
-#[derive(Debug)]
-#[derive(PartialEq, Eq)]
-#[derive(derive_more::Display)]
+#[derive(Debug, PartialEq, Eq, derive_more::Display)]
 #[display(fmt = "{{vote:{}}}", vote)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 pub struct InstallSnapshotResponse<NID: NodeId> {
     pub vote: Vote<NID>,
 }

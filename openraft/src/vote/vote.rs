@@ -8,7 +8,11 @@ use crate::NodeId;
 
 /// `Vote` represent the privilege of a node.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize), serde(bound = ""))]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Deserialize, serde::Serialize),
+    serde(bound = "")
+)]
 pub struct Vote<NID: NodeId> {
     /// The id of the node that tries to become the leader.
     pub leader_id: LeaderId<NID>,
@@ -30,7 +34,10 @@ impl<NID: NodeId> PartialOrd for Vote<NID> {
                     (true, false) => Some(Ordering::Greater),
                     (false, true) => Some(Ordering::Less),
                     (true, true) => {
-                        unreachable!("two incomparable leaders can not be both committed: {} {}", self, other)
+                        unreachable!(
+                            "two incomparable leaders can not be both committed: {} {}",
+                            self, other
+                        )
                     }
                 }
             }
@@ -115,7 +122,10 @@ mod tests {
         fn test_vote_serde() -> anyhow::Result<()> {
             let v = Vote::new(1, 2);
             let s = serde_json::to_string(&v)?;
-            assert_eq!(r#"{"leader_id":{"term":1,"node_id":2},"committed":false}"#, s);
+            assert_eq!(
+                r#"{"leader_id":{"term":1,"node_id":2},"committed":false}"#,
+                s
+            );
 
             let v2: Vote<u64> = serde_json::from_str(&s)?;
             assert_eq!(v, v2);
@@ -162,7 +172,10 @@ mod tests {
         fn test_vote_serde() -> anyhow::Result<()> {
             let v = Vote::new(1, 2);
             let s = serde_json::to_string(&v)?;
-            assert_eq!(r#"{"leader_id":{"term":1,"voted_for":2},"committed":false}"#, s);
+            assert_eq!(
+                r#"{"leader_id":{"term":1,"voted_for":2},"committed":false}"#,
+                s
+            );
 
             let v2: Vote<u64> = serde_json::from_str(&s)?;
             assert_eq!(v, v2);
@@ -177,7 +190,10 @@ mod tests {
             let vote = |term, node_id| Vote::<u64>::new(term, node_id);
 
             let none = |term| Vote::<u64> {
-                leader_id: LeaderId { term, voted_for: None },
+                leader_id: LeaderId {
+                    term,
+                    voted_for: None,
+                },
                 committed: false,
             };
 

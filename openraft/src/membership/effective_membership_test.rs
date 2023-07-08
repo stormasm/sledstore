@@ -19,7 +19,8 @@ fn test_effective_membership_majority() -> anyhow::Result<()> {
     }
 
     {
-        let m12345_678 = Membership::<u64, ()>::new(vec![btreeset! {1,2,3,4,5 }, btreeset! {6,7,8}], None);
+        let m12345_678 =
+            Membership::<u64, ()>::new(vec![btreeset! {1,2,3,4,5 }, btreeset! {6,7,8}], None);
         let m = EffectiveMembership::new(None, m12345_678);
 
         assert!(!m.is_quorum([0].iter()));

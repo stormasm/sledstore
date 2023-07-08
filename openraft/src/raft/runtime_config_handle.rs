@@ -43,11 +43,17 @@ where
     /// the leader, and it will start election(if `Self::elect()` is enabled) when the lease timed
     /// out.
     pub fn heartbeat(&self, enabled: bool) {
-        self.raft_inner.runtime_config.enable_heartbeat.store(enabled, Ordering::Relaxed);
+        self.raft_inner
+            .runtime_config
+            .enable_heartbeat
+            .store(enabled, Ordering::Relaxed);
     }
 
     /// Enable or disable election for a follower when its leader lease timed out.
     pub fn elect(&self, enabled: bool) {
-        self.raft_inner.runtime_config.enable_elect.store(enabled, Ordering::Relaxed);
+        self.raft_inner
+            .runtime_config
+            .enable_elect
+            .store(enabled, Ordering::Relaxed);
     }
 }

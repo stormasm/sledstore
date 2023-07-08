@@ -115,7 +115,8 @@ impl<T: Validate> Validate for &T {
 /// let _x = f.a; // panic: panicked at 'invalid state: expect: self.a(20) <= 10(10) ...
 /// ```
 pub(crate) struct Valid<T>
-where T: Validate
+where
+    T: Validate,
 {
     pub(crate) enable_validate: bool,
     inner: T,
@@ -131,7 +132,8 @@ impl<T: Validate> Valid<T> {
 }
 
 impl<T> Deref for Valid<T>
-where T: Validate
+where
+    T: Validate,
 {
     type Target = T;
 
@@ -148,7 +150,8 @@ where T: Validate
 }
 
 impl<T> DerefMut for Valid<T>
-where T: Validate
+where
+    T: Validate,
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         #[cfg(debug_assertions)]
@@ -163,7 +166,8 @@ where T: Validate
 }
 
 impl<T: PartialEq> PartialEq for Valid<T>
-where T: Validate
+where
+    T: Validate,
 {
     fn eq(&self, other: &Self) -> bool {
         self.inner.eq(&other.inner)
@@ -173,7 +177,8 @@ where T: Validate
 impl<T: Eq> Eq for Valid<T> where T: Validate {}
 
 impl<T: Debug> Debug for Valid<T>
-where T: Validate
+where
+    T: Validate,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         self.inner.fmt(f)
@@ -181,7 +186,8 @@ where T: Validate
 }
 
 impl<T: Clone> Clone for Valid<T>
-where T: Validate
+where
+    T: Validate,
 {
     fn clone(&self) -> Self {
         Self {
@@ -192,7 +198,8 @@ where T: Validate
 }
 
 impl<T: Default> Default for Valid<T>
-where T: Validate
+where
+    T: Validate,
 {
     fn default() -> Self {
         Self {
@@ -203,7 +210,8 @@ where T: Validate
 }
 
 impl<T: Display> Display for Valid<T>
-where T: Validate
+where
+    T: Validate,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         self.inner.fmt(f)
@@ -243,7 +251,11 @@ mod tests {
         println!("Display: {}", Valid::new(Foo { a: 3 }));
 
         // Default
-        assert_eq!(Valid::new(Foo { a: 0 }), Valid::<Foo>::default(), "impl Default");
+        assert_eq!(
+            Valid::new(Foo { a: 0 }),
+            Valid::<Foo>::default(),
+            "impl Default"
+        );
 
         // Clone
         #[allow(clippy::redundant_clone)]

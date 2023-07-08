@@ -243,7 +243,10 @@ where
             _p: Default::default(),
         };
 
-        let core_handle = C::AsyncRuntime::spawn(core.main(rx_shutdown).instrument(trace_span!("spawn").or_current()));
+        let core_handle = C::AsyncRuntime::spawn(
+            core.main(rx_shutdown)
+                .instrument(trace_span!("spawn").or_current()),
+        );
 
         let inner = RaftInner {
             id,
@@ -346,7 +349,10 @@ where
     /// These RPCs are sent by cluster peers which are in candidate state attempting to gather votes
     /// (§5.2).
     #[tracing::instrument(level = "debug", skip(self, rpc))]
-    pub async fn vote(&self, rpc: VoteRequest<C::NodeId>) -> Result<VoteResponse<C::NodeId>, RaftError<C::NodeId>> {
+    pub async fn vote(
+        &self,
+        rpc: VoteRequest<C::NodeId>,
+    ) -> Result<VoteResponse<C::NodeId>, RaftError<C::NodeId>> {
         tracing::info!(rpc = display(rpc.summary()), "Raft::vote()");
 
         let (tx, rx) = oneshot::channel();
@@ -361,11 +367,13 @@ where
     pub async fn install_snapshot(
         &self,
         rpc: InstallSnapshotRequest<C>,
-    ) -> Result<InstallSnapshotResponse<C::NodeId>, RaftError<C::NodeId, InstallSnapshotError>> {
+    ) -> Result<InstallSnapshotResponse<C::NodeId>, RaftError<C::NodeId, InstallSnapshotError>>
+    {
         tracing::debug!(rpc = display(rpc.summary()), "Raft::install_snapshot()");
 
         let (tx, rx) = oneshot::channel();
-        self.call_core(RaftMsg::InstallSnapshot { rpc, tx }, rx).await
+        self.call_core(RaftMsg::InstallSnapshot { rpc, tx }, rx)
+            .await
     }
 
     /// Get the ID of the current leader from this Raft node.
@@ -384,9 +392,12 @@ where
     /// The actual read operation itself is up to the application, this method just ensures that
     /// the read will not be stale.
     #[tracing::instrument(level = "debug", skip(self))]
-    pub async fn is_leader(&self) -> Result<(), RaftError<C::NodeId, CheckIsLeaderError<C::NodeId, C::Node>>> {
+    pub async fn is_leader(
+        &self,
+    ) -> Result<(), RaftError<C::NodeId, CheckIsLeaderError<C::NodeId, C::Node>>> {
         let (tx, rx) = oneshot::channel();
-        self.call_core(RaftMsg::CheckIsLeaderRequest { tx }, rx).await
+        self.call_core(RaftMsg::CheckIsLeaderRequest { tx }, rx)
+            .await
     }
 
     /// Submit a mutating client request to Raft to update the state of the system (§5.1).
@@ -411,9 +422,11 @@ where
     pub async fn client_write(
         &self,
         app_data: C::D,
-    ) -> Result<ClientWriteResponse<C>, RaftError<C::NodeId, ClientWriteError<C::NodeId, C::Node>>> {
+    ) -> Result<ClientWriteResponse<C>, RaftError<C::NodeId, ClientWriteError<C::NodeId, C::Node>>>
+    {
         let (tx, rx) = oneshot::channel();
-        self.call_core(RaftMsg::ClientWriteRequest { app_data, tx }, rx).await
+        self.call_core(RaftMsg::ClientWriteRequest { app_data, tx }, rx)
+            .await
     }
 
     /// Initialize a pristine Raft node with the given config.
@@ -478,7 +491,8 @@ where
         id: C::NodeId,
         node: C::Node,
         blocking: bool,
-    ) -> Result<ClientWriteResponse<C>, RaftError<C::NodeId, ClientWriteError<C::NodeId, C::Node>>> {
+    ) -> Result<ClientWriteResponse<C>, RaftError<C::NodeId, ClientWriteError<C::NodeId, C::Node>>>
+    {
         let (tx, rx) = oneshot::channel();
         let resp = self
             .call_core(
@@ -507,7 +521,11 @@ where
         let wait_res = self
             .wait(None)
             .metrics(
-                |metrics| match self.check_replication_upto_date(metrics, id, Some(membership_log_id)) {
+                |metrics| match self.check_replication_upto_date(
+                    metrics,
+                    id,
+                    Some(membership_log_id),
+                ) {
                     Ok(_matching) => true,
                     // keep waiting
                     Err(_) => false,
@@ -516,7 +534,10 @@ where
             )
             .await;
 
-        tracing::info!(wait_res = debug(&wait_res), "waiting for replication to new learner");
+        tracing::info!(
+            wait_res = debug(&wait_res),
+            "waiting for replication to new learner"
+        );
 
         Ok(resp)
     }
@@ -536,7 +557,12 @@ where
             return Err(());
         }
 
-        if metrics.membership_config.membership().get_node(&node_id).is_none() {
+        if metrics
+            .membership_config
+            .membership()
+            .get_node(&node_id)
+            .is_none()
+        {
             // This learner has been removed.
             return Ok(None);
         }
@@ -599,7 +625,8 @@ where
         &self,
         members: impl Into<ChangeMembers<C::NodeId, C::Node>>,
         retain: bool,
-    ) -> Result<ClientWriteResponse<C>, RaftError<C::NodeId, ClientWriteError<C::NodeId, C::Node>>> {
+    ) -> Result<ClientWriteResponse<C>, RaftError<C::NodeId, ClientWriteError<C::NodeId, C::Node>>>
+    {
         let changes: ChangeMembers<C::NodeId, C::Node> = members.into();
 
         tracing::info!(
@@ -636,17 +663,32 @@ where
         }
 
         tracing::debug!("committed a joint config: {} {:?}", log_id, joint);
-        tracing::debug!("the second step is to change to uniform config: {:?}", changes);
+        tracing::debug!(
+            "the second step is to change to uniform config: {:?}",
+            changes
+        );
 
         let (tx, rx) = oneshot::channel();
-        let res = self.call_core(RaftMsg::ChangeMembership { changes, retain, tx }, rx).await;
+        let res = self
+            .call_core(
+                RaftMsg::ChangeMembership {
+                    changes,
+                    retain,
+                    tx,
+                },
+                rx,
+            )
+            .await;
 
         if let Err(e) = &res {
             tracing::error!("the second step error: {}", e);
         }
         let res = res?;
 
-        tracing::info!("res of second step of do_change_membership: {}", res.summary());
+        tracing::info!(
+            "res of second step of do_change_membership: {}",
+            res.summary()
+        );
 
         Ok(res)
     }
@@ -670,17 +712,26 @@ where
         let send_res = self.inner.tx_api.send(mes);
 
         if send_res.is_err() {
-            let fatal = self.inner.get_core_stopped_error("sending tx to RaftCore", sum).await;
+            let fatal = self
+                .inner
+                .get_core_stopped_error("sending tx to RaftCore", sum)
+                .await;
             return Err(RaftError::Fatal(fatal));
         }
 
         let recv_res = rx.await;
-        tracing::debug!("call_core receives result is error: {:?}", recv_res.is_err());
+        tracing::debug!(
+            "call_core receives result is error: {:?}",
+            recv_res.is_err()
+        );
 
         match recv_res {
             Ok(x) => x.map_err(|e| RaftError::APIError(e)),
             Err(_) => {
-                let fatal = self.inner.get_core_stopped_error("receiving rx from RaftCore", sum).await;
+                let fatal = self
+                    .inner
+                    .get_core_stopped_error("receiving rx from RaftCore", sum)
+                    .await;
                 tracing::error!(error = debug(&fatal), "core_call fatal error");
                 Err(RaftError::Fatal(fatal))
             }
@@ -700,14 +751,20 @@ where
     /// If the API channel is already closed (Raft is in shutdown), then the request functor is
     /// destroyed right away and not called at all.
     pub fn external_request<
-        F: FnOnce(&RaftState<C::NodeId, C::Node, <C::AsyncRuntime as AsyncRuntime>::Instant>, &mut LS, &mut N)
-            + Send
+        F: FnOnce(
+                &RaftState<C::NodeId, C::Node, <C::AsyncRuntime as AsyncRuntime>::Instant>,
+                &mut LS,
+                &mut N,
+            ) + Send
             + 'static,
     >(
         &self,
         req: F,
     ) {
-        let _ignore_error = self.inner.tx_api.send(RaftMsg::ExternalRequest { req: Box::new(req) });
+        let _ignore_error = self
+            .inner
+            .tx_api
+            .send(RaftMsg::ExternalRequest { req: Box::new(req) });
     }
 
     /// Get a handle to the metrics channel.
@@ -755,7 +812,10 @@ where
             // A failure to send means the RaftCore is already shutdown. Continue to check the task
             // return value.
             let send_res = tx.send(());
-            tracing::info!("sending shutdown signal to RaftCore, sending res: {:?}", send_res);
+            tracing::info!(
+                "sending shutdown signal to RaftCore, sending res: {:?}",
+                send_res
+            );
         }
         self.inner.join_core_task().await;
         self.inner.tick_handle.shutdown().await;

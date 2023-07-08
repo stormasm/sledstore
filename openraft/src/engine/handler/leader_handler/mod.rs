@@ -1,4 +1,5 @@
-#[allow(unused_imports)] use crate::docs;
+#[allow(unused_imports)]
+use crate::docs;
 use crate::engine::handler::replication_handler::ReplicationHandler;
 use crate::engine::handler::replication_handler::SendNone;
 use crate::engine::Command;
@@ -12,8 +13,10 @@ use crate::RaftLogId;
 use crate::RaftState;
 use crate::RaftTypeConfig;
 
-#[cfg(test)] mod append_entries_test;
-#[cfg(test)] mod send_heartbeat_test;
+#[cfg(test)]
+mod append_entries_test;
+#[cfg(test)]
+mod send_heartbeat_test;
 
 /// Handle leader operations.
 ///
@@ -21,17 +24,23 @@ use crate::RaftTypeConfig;
 /// - Change membership;
 /// - etc
 pub(crate) struct LeaderHandler<'x, C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     pub(crate) config: &'x mut EngineConfig<C::NodeId>,
-    pub(crate) leader:
-        &'x mut Leading<C::NodeId, LeaderQuorumSet<C::NodeId>, <C::AsyncRuntime as AsyncRuntime>::Instant>,
-    pub(crate) state: &'x mut RaftState<C::NodeId, C::Node, <C::AsyncRuntime as AsyncRuntime>::Instant>,
+    pub(crate) leader: &'x mut Leading<
+        C::NodeId,
+        LeaderQuorumSet<C::NodeId>,
+        <C::AsyncRuntime as AsyncRuntime>::Instant,
+    >,
+    pub(crate) state:
+        &'x mut RaftState<C::NodeId, C::Node, <C::AsyncRuntime as AsyncRuntime>::Instant>,
     pub(crate) output: &'x mut EngineOutput<C>,
 }
 
 impl<'x, C> LeaderHandler<'x, C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     /// Append new log entries by a leader.
     ///
@@ -63,7 +72,8 @@ where C: RaftTypeConfig
             }
         }
 
-        self.output.push_command(Command::AppendInputEntries { entries });
+        self.output
+            .push_command(Command::AppendInputEntries { entries });
 
         let mut rh = self.replication_handler();
 

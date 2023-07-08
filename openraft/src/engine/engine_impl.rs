@@ -58,12 +58,14 @@ use crate::Vote;
 /// TODO: make the fields private
 #[derive(Debug, Default)]
 pub(crate) struct Engine<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     pub(crate) config: EngineConfig<C::NodeId>,
 
     /// The state of this raft node.
-    pub(crate) state: Valid<RaftState<C::NodeId, C::Node, <C::AsyncRuntime as AsyncRuntime>::Instant>>,
+    pub(crate) state:
+        Valid<RaftState<C::NodeId, C::Node, <C::AsyncRuntime as AsyncRuntime>::Instant>>,
 
     // TODO: add a Voting state as a container.
     /// Whether a greater log id is seen during election.
@@ -73,14 +75,16 @@ where C: RaftTypeConfig
     pub(crate) seen_greater_log: bool,
 
     /// The internal server state used by Engine.
-    pub(crate) internal_server_state: InternalServerState<C::NodeId, <C::AsyncRuntime as AsyncRuntime>::Instant>,
+    pub(crate) internal_server_state:
+        InternalServerState<C::NodeId, <C::AsyncRuntime as AsyncRuntime>::Instant>,
 
     /// Output entry for the runtime.
     pub(crate) output: EngineOutput<C>,
 }
 
 impl<C> Engine<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     pub(crate) fn new(
         init_state: RaftState<C::NodeId, C::Node, <C::AsyncRuntime as AsyncRuntime>::Instant>,
@@ -101,10 +105,16 @@ where C: RaftTypeConfig
         // Allows starting up as a leader.
 
         tracing::info!("startup: state: {:?}", self.state);
-        tracing::info!("startup: is_leader: {}", self.state.is_leader(&self.config.id));
+        tracing::info!(
+            "startup: is_leader: {}",
+            self.state.is_leader(&self.config.id)
+        );
         tracing::info!(
             "startup: is_voter: {}",
-            self.state.membership_state.effective().is_voter(&self.config.id)
+            self.state
+                .membership_state
+                .effective()
+                .is_voter(&self.config.id)
         );
 
         // Previously it is a leader. restore it as leader at once
@@ -122,7 +132,12 @@ where C: RaftTypeConfig
             return;
         }
 
-        let server_state = if self.state.membership_state.effective().is_voter(&self.config.id) {
+        let server_state = if self
+            .state
+            .membership_state
+            .effective()
+            .is_voter(&self.config.id)
+        {
             ServerState::Follower
         } else {
             ServerState::Learner
@@ -147,17 +162,26 @@ where C: RaftTypeConfig
     /// follower. This step is not confined by the consensus protocol and has to be dealt with
     /// differently.
     #[tracing::instrument(level = "debug", skip_all)]
-    pub(crate) fn initialize(&mut self, mut entry: C::Entry) -> Result<(), InitializeError<C::NodeId, C::Node>> {
+    pub(crate) fn initialize(
+        &mut self,
+        mut entry: C::Entry,
+    ) -> Result<(), InitializeError<C::NodeId, C::Node>> {
         self.check_initialize()?;
 
         self.state.assign_log_ids([&mut entry]);
         let log_id = *entry.get_log_id();
         self.state.extend_log_ids_from_same_leader(&[log_id]);
 
-        let m = entry.get_membership().expect("the only log entry for initializing has to be membership log");
+        let m = entry
+            .get_membership()
+            .expect("the only log entry for initializing has to be membership log");
         self.check_members_contain_me(m)?;
 
-        tracing::debug!("update effective membership: log_id:{} {}", log_id, m.summary());
+        tracing::debug!(
+            "update effective membership: log_id:{} {}",
+            log_id,
+            m.summary()
+        );
 
         let em = EffectiveMembership::new_arc(Some(log_id), m.clone());
         self.state.membership_state.append(em);
@@ -239,13 +263,19 @@ where C: RaftTypeConfig
     }
 
     #[tracing::instrument(level = "debug", skip_all)]
-    pub(crate) fn handle_vote_req(&mut self, req: VoteRequest<C::NodeId>) -> VoteResponse<C::NodeId> {
+    pub(crate) fn handle_vote_req(
+        &mut self,
+        req: VoteRequest<C::NodeId>,
+    ) -> VoteResponse<C::NodeId> {
         let now = <C::AsyncRuntime as AsyncRuntime>::Instant::now();
         let lease = self.config.timer_config.leader_lease;
         let vote = self.state.vote_ref();
 
         // Make default vote-last-modified a low enough value, that expires leader lease.
-        let vote_utime = self.state.vote_last_modified().unwrap_or_else(|| now - lease - Duration::from_millis(1));
+        let vote_utime = self
+            .state
+            .vote_last_modified()
+            .unwrap_or_else(|| now - lease - Duration::from_millis(1));
 
         tracing::info!(req = display(req.summary()), "Engine::handle_vote_req");
         tracing::info!(
@@ -358,7 +388,11 @@ where C: RaftTypeConfig
 
         // vote is rejected:
 
-        debug_assert!(self.state.membership_state.effective().is_voter(&self.config.id));
+        debug_assert!(self
+            .state
+            .membership_state
+            .effective()
+            .is_voter(&self.config.id));
 
         // If peer's vote is greater than current vote, revert to follower state.
         //
@@ -451,11 +485,13 @@ where C: RaftTypeConfig
     ) -> Option<()> {
         tracing::info!(req = display(req.summary()), "{}", func_name!());
 
-        let res = self.vote_handler().accept_vote(&req.vote, tx, |state, _rejected| {
-            Ok(InstallSnapshotResponse {
-                vote: *state.vote_ref(),
-            })
-        });
+        let res = self
+            .vote_handler()
+            .accept_vote(&req.vote, tx, |state, _rejected| {
+                Ok(InstallSnapshotResponse {
+                    vote: *state.vote_ref(),
+                })
+            });
 
         let tx = match res {
             Some(tx) => tx,
@@ -480,7 +516,10 @@ where C: RaftTypeConfig
     }
 
     #[tracing::instrument(level = "debug", skip_all)]
-    pub(crate) fn install_snapshot(&mut self, req: InstallSnapshotRequest<C>) -> Result<(), InstallSnapshotError> {
+    pub(crate) fn install_snapshot(
+        &mut self,
+        req: InstallSnapshotRequest<C>,
+    ) -> Result<(), InstallSnapshotError> {
         tracing::info!(req = display(req.summary()), "{}", func_name!());
 
         let done = req.done;
@@ -621,7 +660,8 @@ where C: RaftTypeConfig
 
 /// Supporting util
 impl<C> Engine<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     /// Vote is granted by a quorum, leader established.
     #[tracing::instrument(level = "debug", skip_all)]
@@ -752,7 +792,9 @@ where C: RaftTypeConfig
         }
     }
 
-    pub(crate) fn leader_handler(&mut self) -> Result<LeaderHandler<C>, ForwardToLeader<C::NodeId, C::Node>> {
+    pub(crate) fn leader_handler(
+        &mut self,
+    ) -> Result<LeaderHandler<C>, ForwardToLeader<C::NodeId, C::Node>> {
         let leader = match self.internal_server_state.leading_mut() {
             None => {
                 tracing::debug!("this node is NOT a leader: {:?}", self.state.server_state);

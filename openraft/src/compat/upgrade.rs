@@ -8,7 +8,9 @@ pub trait Upgrade<To> {
     fn upgrade(self) -> To;
 
     fn try_upgrade(self) -> Result<To, (Self, &'static str)>
-    where Self: Sized {
+    where
+        Self: Sized,
+    {
         Ok(self.upgrade())
     }
 }
@@ -16,11 +18,11 @@ pub trait Upgrade<To> {
 /// `Compat` is a serialization compatible type that can be deserialized from both an older type
 /// and a newer type. It serves as an intermediate type container for newer programs to read old
 /// data.
-#[derive(Debug)]
-#[derive(serde::Deserialize, serde::Serialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum Compat<From, To>
-where From: Upgrade<To>
+where
+    From: Upgrade<To>,
 {
     /// Represents the older version of the data.
     Old(From),
@@ -30,7 +32,8 @@ where From: Upgrade<To>
 
 /// A compatible type can be upgraded to `To` if `From` can be upgraded to `To`.
 impl<From, To> Upgrade<To> for Compat<From, To>
-where From: Upgrade<To>
+where
+    From: Upgrade<To>,
 {
     fn upgrade(self) -> To {
         match self {

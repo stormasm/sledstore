@@ -29,7 +29,9 @@ fn eng() -> Engine<UTConfig> {
     let mut eng = Engine::default();
     eng.state.enable_validate = false; // Disable validation for incomplete state
 
-    eng.state.vote.update(TokioInstant::now(), Vote::new_committed(2, 1));
+    eng.state
+        .vote
+        .update(TokioInstant::now(), Vote::new_committed(2, 1));
     eng.state.committed = Some(log_id(4, 1, 5));
     eng.state.log_ids = LogIdList::new(vec![
         //
@@ -139,7 +141,10 @@ fn test_install_snapshot_not_conflict() -> anyhow::Result<()> {
         },
         eng.state.snapshot_meta
     );
-    assert_eq!(&[log_id(4, 1, 6), log_id(4, 1, 8)], eng.state.log_ids.key_log_ids());
+    assert_eq!(
+        &[log_id(4, 1, 6), log_id(4, 1, 8)],
+        eng.state.log_ids.key_log_ids()
+    );
     assert_eq!(Some(&log_id(4, 1, 6)), eng.state.committed());
     assert_eq!(
         &Arc::new(EffectiveMembership::new(Some(log_id(1, 1, 1)), m1234())),
@@ -156,7 +161,9 @@ fn test_install_snapshot_not_conflict() -> anyhow::Result<()> {
                 })
                 .with_seq(1)
             ),
-            Command::PurgeLog { upto: log_id(4, 1, 6) },
+            Command::PurgeLog {
+                upto: log_id(4, 1, 6)
+            },
         ],
         eng.output.take_commands()
     );
@@ -172,7 +179,9 @@ fn test_install_snapshot_conflict() -> anyhow::Result<()> {
         let mut eng = Engine::<UTConfig>::default();
         eng.state.enable_validate = false; // Disable validation for incomplete state
 
-        eng.state.vote.update(TokioInstant::now(), Vote::new_committed(2, 1));
+        eng.state
+            .vote
+            .update(TokioInstant::now(), Vote::new_committed(2, 1));
         eng.state.committed = Some(log_id(2, 1, 3));
         eng.state.log_ids = LogIdList::new(vec![
             //
@@ -216,7 +225,9 @@ fn test_install_snapshot_conflict() -> anyhow::Result<()> {
     assert_eq!(
         vec![
             //
-            Command::DeleteConflictLog { since: log_id(2, 1, 4) },
+            Command::DeleteConflictLog {
+                since: log_id(2, 1, 4)
+            },
             Command::from(
                 sm::Command::install_snapshot(SnapshotMeta {
                     last_log_id: Some(log_id(5, 1, 6)),
@@ -225,7 +236,9 @@ fn test_install_snapshot_conflict() -> anyhow::Result<()> {
                 })
                 .with_seq(1)
             ),
-            Command::PurgeLog { upto: log_id(5, 1, 6) },
+            Command::PurgeLog {
+                upto: log_id(5, 1, 6)
+            },
         ],
         eng.output.take_commands()
     );

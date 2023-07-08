@@ -13,14 +13,14 @@ where
     QS: QuorumSet<ID>,
 {
     fn as_joint(&'d self) -> Joint<ID, QS, D>
-    where D: 'd;
+    where
+        D: 'd;
 }
 
 /// A wrapper that uses other data to define a joint quorum set.
 ///
 /// The input ids has to be a quorum in every sub-config to constitute a joint-quorum.
-#[derive(Clone, Debug, Default)]
-#[derive(PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub(crate) struct Joint<ID, QS, D>
 where
@@ -37,7 +37,10 @@ where
     QS: QuorumSet<ID>,
 {
     pub(crate) fn new(data: D) -> Self {
-        Self { data, _p: PhantomData }
+        Self {
+            data,
+            _p: PhantomData,
+        }
     }
 
     pub(crate) fn children(&self) -> &D {

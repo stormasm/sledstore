@@ -1,9 +1,12 @@
 use std::sync::Arc;
 
 use maplit::btreeset;
-#[allow(unused_imports)] use pretty_assertions::assert_eq;
-#[allow(unused_imports)] use pretty_assertions::assert_ne;
-#[allow(unused_imports)] use pretty_assertions::assert_str_eq;
+#[allow(unused_imports)]
+use pretty_assertions::assert_eq;
+#[allow(unused_imports)]
+use pretty_assertions::assert_ne;
+#[allow(unused_imports)]
+use pretty_assertions::assert_str_eq;
 
 use crate::engine::testing::UTConfig;
 use crate::engine::Command;
@@ -64,7 +67,8 @@ fn test_leader_append_entries_empty() -> anyhow::Result<()> {
     let mut eng = eng();
     eng.vote_handler().become_leading();
 
-    eng.leader_handler()?.leader_append_entries(Vec::<Entry<UTConfig>>::new());
+    eng.leader_handler()?
+        .leader_append_entries(Vec::<Entry<UTConfig>>::new());
 
     assert_eq!(
         &[
@@ -147,7 +151,10 @@ fn test_leader_append_entries_single_node_leader() -> anyhow::Result<()> {
     let mut eng = eng();
     eng.state
         .membership_state
-        .set_effective(Arc::new(EffectiveMembership::new(Some(log_id(2, 1, 3)), m1())));
+        .set_effective(Arc::new(EffectiveMembership::new(
+            Some(log_id(2, 1, 3)),
+            m1(),
+        )));
     eng.vote_handler().become_leading();
 
     eng.output.clear_commands();
@@ -196,7 +203,10 @@ fn test_leader_append_entries_with_membership_log() -> anyhow::Result<()> {
     let mut eng = eng();
     eng.state
         .membership_state
-        .set_effective(Arc::new(EffectiveMembership::new(Some(log_id(2, 1, 3)), m1())));
+        .set_effective(Arc::new(EffectiveMembership::new(
+            Some(log_id(2, 1, 3)),
+            m1(),
+        )));
     eng.vote_handler().become_leading();
     eng.state.server_state = eng.calc_server_state();
 

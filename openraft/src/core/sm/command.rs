@@ -13,14 +13,16 @@ use crate::SnapshotMeta;
 
 #[derive(PartialEq)]
 pub(crate) struct Command<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     pub(crate) seq: CommandSeq,
     pub(crate) payload: CommandPayload<C>,
 }
 
 impl<C> Debug for Command<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("StateMachineCommand")
@@ -31,7 +33,8 @@ where C: RaftTypeConfig
 }
 
 impl<C> Command<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     pub(crate) fn new(payload: CommandPayload<C>) -> Self {
         Self { seq: 0, payload }
@@ -98,13 +101,16 @@ pub(crate) type CommandSeq = u64;
 
 /// The payload of a state machine command.
 pub(crate) enum CommandPayload<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     /// Instruct the state machine to create a snapshot based on its most recent view.
     BuildSnapshot,
 
     /// Get the latest built snapshot.
-    GetSnapshot { tx: oneshot::Sender<Option<Snapshot<C>>> },
+    GetSnapshot {
+        tx: oneshot::Sender<Option<Snapshot<C>>>,
+    },
 
     /// Receive a chunk of snapshot.
     ///
@@ -126,7 +132,8 @@ where C: RaftTypeConfig
 }
 
 impl<C> Debug for CommandPayload<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -135,8 +142,15 @@ where C: RaftTypeConfig
             CommandPayload::ReceiveSnapshotChunk { req, .. } => {
                 write!(f, "ReceiveSnapshotChunk: {}", req.summary())
             }
-            CommandPayload::FinalizeSnapshot { install, snapshot_meta } => {
-                write!(f, "FinalizeSnapshot: install:{} {:?}", install, snapshot_meta)
+            CommandPayload::FinalizeSnapshot {
+                install,
+                snapshot_meta,
+            } => {
+                write!(
+                    f,
+                    "FinalizeSnapshot: install:{} {:?}",
+                    install, snapshot_meta
+                )
             }
             CommandPayload::Apply { entries } => write!(f, "Apply: {}", DisplaySlice::<_>(entries)),
         }
@@ -145,7 +159,8 @@ where C: RaftTypeConfig
 
 // `PartialEq` is only used for testing
 impl<C> PartialEq for CommandPayload<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
@@ -165,7 +180,10 @@ where C: RaftTypeConfig
                     snapshot_meta: meta2,
                 },
             ) => install1 == install2 && meta1 == meta2,
-            (CommandPayload::Apply { entries: entries1 }, CommandPayload::Apply { entries: entries2 }) => {
+            (
+                CommandPayload::Apply { entries: entries1 },
+                CommandPayload::Apply { entries: entries2 },
+            ) => {
                 // Entry may not be `Eq`, we just compare log id.
                 // This would be enough for testing.
                 entries1.iter().map(|e| *e.get_log_id()).collect::<Vec<_>>()

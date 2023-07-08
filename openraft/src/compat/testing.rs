@@ -19,4 +19,5 @@ pub trait StoreBuilder {
 
 #[cfg(feature = "compat-07")]
 pub use crate::compat::compat07::testing::StoreBuilder07;
-#[cfg(feature = "compat-07")] pub use crate::compat::compat07::testing::Suite07;
+#[cfg(feature = "compat-07")]
+pub use crate::compat::compat07::testing::Suite07;

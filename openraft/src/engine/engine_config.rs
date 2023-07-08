@@ -6,8 +6,7 @@ use crate::NodeId;
 use crate::SnapshotPolicy;
 
 /// Config for Engine
-#[derive(Clone, Debug)]
-#[derive(PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub(crate) struct EngineConfig<NID: NodeId> {
     /// The id of this node.
     pub(crate) id: NID,

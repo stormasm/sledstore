@@ -12,12 +12,16 @@ use crate::StorageError;
 
 #[add_async_trait]
 pub trait RaftLogReaderExt<C>: RaftLogReader<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     /// Try to get an log entry.
     ///
     /// It does not return an error if the log entry at `log_index` is not found.
-    async fn try_get_log_entry(&mut self, log_index: u64) -> Result<Option<C::Entry>, StorageError<C::NodeId>> {
+    async fn try_get_log_entry(
+        &mut self,
+        log_index: u64,
+    ) -> Result<Option<C::Entry>, StorageError<C::NodeId>> {
         let mut res = self.try_get_log_entries(log_index..(log_index + 1)).await?;
         Ok(res.pop())
     }
@@ -38,7 +42,10 @@ where C: RaftTypeConfig
     }
 
     /// Get the log id of the entry at `index`.
-    async fn get_log_id(&mut self, log_index: u64) -> Result<LogId<C::NodeId>, StorageError<C::NodeId>> {
+    async fn get_log_id(
+        &mut self,
+        log_index: u64,
+    ) -> Result<LogId<C::NodeId>, StorageError<C::NodeId>> {
         let entries = self.get_log_entries(log_index..=log_index).await?;
 
         Ok(*entries[0].get_log_id())

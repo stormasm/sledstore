@@ -44,7 +44,8 @@ pub(crate) mod sealed {
 ///   `log` IO. E.g., Saving a vote and appending a log entry must be serialized too.
 #[add_async_trait]
 pub trait RaftLogStorage<C>: Sealed + RaftLogReader<C> + Send + Sync + 'static
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     /// Log reader type.
     ///
@@ -95,7 +96,11 @@ where C: RaftTypeConfig
     ///
     /// - There must not be a **hole** in logs. Because Raft only examine the last log id to ensure
     ///   correctness.
-    async fn append<I>(&mut self, entries: I, callback: LogFlushed<C::NodeId>) -> Result<(), StorageError<C::NodeId>>
+    async fn append<I>(
+        &mut self,
+        entries: I,
+        callback: LogFlushed<C::NodeId>,
+    ) -> Result<(), StorageError<C::NodeId>>
     where
         I: IntoIterator<Item = C::Entry> + OptionalSend,
         I::IntoIter: OptionalSend;
@@ -121,7 +126,8 @@ where C: RaftTypeConfig
 /// state machine.
 #[add_async_trait]
 pub trait RaftStateMachine<C>: Sealed + Send + Sync + 'static
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     /// Snapshot builder type.
     type SnapshotBuilder: RaftSnapshotBuilder<C>;
@@ -138,7 +144,13 @@ where C: RaftTypeConfig
     /// last-applied-log-id.
     async fn applied_state(
         &mut self,
-    ) -> Result<(Option<LogId<C::NodeId>>, StoredMembership<C::NodeId, C::Node>), StorageError<C::NodeId>>;
+    ) -> Result<
+        (
+            Option<LogId<C::NodeId>>,
+            StoredMembership<C::NodeId, C::Node>,
+        ),
+        StorageError<C::NodeId>,
+    >;
 
     /// Apply the given payload of entries to the state machine.
     ///
@@ -191,7 +203,9 @@ where C: RaftTypeConfig
     ///
     /// See the [storage chapter of the guide](https://datafuselabs.github.io/openraft/storage.html)
     /// for details on snapshot streaming.
-    async fn begin_receiving_snapshot(&mut self) -> Result<Box<C::SnapshotData>, StorageError<C::NodeId>>;
+    async fn begin_receiving_snapshot(
+        &mut self,
+    ) -> Result<Box<C::SnapshotData>, StorageError<C::NodeId>>;
 
     /// Install a snapshot which has finished streaming from the leader.
     ///
@@ -223,5 +237,7 @@ where C: RaftTypeConfig
     /// A proper snapshot implementation will store last-applied-log-id and the
     /// last-applied-membership config as part of the snapshot, which should be decoded for
     /// creating this method's response data.
-    async fn get_current_snapshot(&mut self) -> Result<Option<Snapshot<C>>, StorageError<C::NodeId>>;
+    async fn get_current_snapshot(
+        &mut self,
+    ) -> Result<Option<Snapshot<C>>, StorageError<C::NodeId>>;
 }

@@ -10,7 +10,8 @@ use crate::Vote;
 /// The response of replication command.
 #[derive(Debug)]
 pub(crate) enum Response<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     // /// Logs that are submitted to append has been persisted to disk.
     // LogPersisted {},
@@ -33,7 +34,10 @@ where C: RaftTypeConfig
         /// the target node.
         ///
         /// The result also track the time when this request is sent.
-        result: Result<UTime<ReplicationResult<C::NodeId>, <C::AsyncRuntime as AsyncRuntime>::Instant>, String>,
+        result: Result<
+            UTime<ReplicationResult<C::NodeId>, <C::AsyncRuntime as AsyncRuntime>::Instant>,
+            String,
+        >,
 
         /// In which session this message is sent.
         ///
@@ -68,7 +72,8 @@ where C: RaftTypeConfig
 }
 
 impl<C> MessageSummary<Response<C>> for Response<C>
-where C: RaftTypeConfig
+where
+    C: RaftTypeConfig,
 {
     fn summary(&self) -> String {
         match self {
