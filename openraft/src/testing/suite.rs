@@ -1,43 +1,44 @@
-use std::collections::BTreeSet;
+//use std::collections::BTreeSet;
 use std::fmt::Debug;
 use std::future::Future;
 use std::marker::PhantomData;
-use std::option::Option::None;
+//use std::option::Option::None;
 
 use anyerror::AnyError;
-use maplit::btreeset;
+//use maplit::btreeset;
 use tokio::sync::oneshot;
 
 use crate::entry::RaftEntry;
 use crate::log_id::RaftLogId;
-use crate::membership::EffectiveMembership;
-use crate::raft_state::LogStateReader;
-use crate::raft_state::RaftState;
+//use crate::membership::EffectiveMembership;
+//use crate::raft_state::LogStateReader;
+//use crate::raft_state::RaftState;
 use crate::storage::LogFlushed;
-use crate::storage::LogState;
+//use crate::storage::LogState;
 use crate::storage::RaftLogReaderExt;
 use crate::storage::RaftLogStorage;
 use crate::storage::RaftStateMachine;
-use crate::storage::StorageHelper;
+//use crate::storage::StorageHelper;
 use crate::testing::StoreBuilder;
 use crate::vote::CommittedLeaderId;
 use crate::AppData;
 use crate::AppDataResponse;
-use crate::AsyncRuntime;
+//use crate::AsyncRuntime;
 use crate::LogId;
-use crate::Membership;
+//use crate::Membership;
 use crate::NodeId;
 use crate::OptionalSend;
-use crate::RaftSnapshotBuilder;
+//use crate::RaftSnapshotBuilder;
 use crate::RaftTypeConfig;
 use crate::StorageError;
 use crate::StorageIOError;
-use crate::StoredMembership;
+//use crate::StoredMembership;
 use crate::Vote;
 
 const NODE_ID: u64 = 0;
 
 /// Helper to construct a `BTreeSet` of `C::NodeId` from numbers.
+/*
 macro_rules! btreeset {
     ($($key:expr,)+) => (btreeset!($($key),+));
     ( $($key:expr),* ) => {{
@@ -46,7 +47,7 @@ macro_rules! btreeset {
         _set
     }};
 }
-
+*/
 /// Test suite to ensure a `RaftStore` impl works as expected.
 pub struct Suite<C, LS, SM, B, G>
 where
@@ -1178,13 +1179,14 @@ where
 }
 
 /// Create a membership entry with node_id 0 for test.
+/*
 fn membership_ent_0<C: RaftTypeConfig>(term: u64, index: u64, bs: BTreeSet<C::NodeId>) -> C::Entry
 where
     C::NodeId: From<u64>,
 {
     C::Entry::new_membership(log_id_0(term, index), Membership::new(vec![bs], ()))
 }
-
+*/
 /// Block until a future is finished.
 /// The future will be running in a clean tokio runtime, to prevent an unfinished task affecting the
 /// test.
@@ -1216,6 +1218,7 @@ where
 }
 
 /// A wrapper for calling nonblocking `RaftStorage::apply_to_state_machine()`
+/*
 async fn apply<C, SM, I>(sm: &mut SM, entries: I) -> Result<(), StorageError<C::NodeId>>
 where
     C: RaftTypeConfig,
@@ -1226,6 +1229,7 @@ where
     sm.apply(entries).await?;
     Ok(())
 }
+*/
 
 /// A wrapper for calling nonblocking `RaftStorage::append_to_log()`
 async fn append<C, LS, I>(store: &mut LS, entries: I) -> Result<(), StorageError<C::NodeId>>
