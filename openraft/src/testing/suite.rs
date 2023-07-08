@@ -1,53 +1,30 @@
-//use std::collections::BTreeSet;
 use std::fmt::Debug;
 use std::future::Future;
 use std::marker::PhantomData;
-//use std::option::Option::None;
 
 use anyerror::AnyError;
-//use maplit::btreeset;
 use tokio::sync::oneshot;
 
 use crate::entry::RaftEntry;
 use crate::log_id::RaftLogId;
-//use crate::membership::EffectiveMembership;
-//use crate::raft_state::LogStateReader;
-//use crate::raft_state::RaftState;
 use crate::storage::LogFlushed;
-//use crate::storage::LogState;
 use crate::storage::RaftLogReaderExt;
 use crate::storage::RaftLogStorage;
 use crate::storage::RaftStateMachine;
-//use crate::storage::StorageHelper;
 use crate::testing::StoreBuilder;
 use crate::vote::CommittedLeaderId;
 use crate::AppData;
 use crate::AppDataResponse;
-//use crate::AsyncRuntime;
 use crate::LogId;
-//use crate::Membership;
 use crate::NodeId;
 use crate::OptionalSend;
-//use crate::RaftSnapshotBuilder;
 use crate::RaftTypeConfig;
 use crate::StorageError;
 use crate::StorageIOError;
-//use crate::StoredMembership;
 use crate::Vote;
 
 const NODE_ID: u64 = 0;
 
-/// Helper to construct a `BTreeSet` of `C::NodeId` from numbers.
-/*
-macro_rules! btreeset {
-    ($($key:expr,)+) => (btreeset!($($key),+));
-    ( $($key:expr),* ) => {{
-        let mut _set = ::std::collections::BTreeSet::new();
-        $( _set.insert($key.into()); )*
-        _set
-    }};
-}
-*/
 /// Test suite to ensure a `RaftStore` impl works as expected.
 pub struct Suite<C, LS, SM, B, G>
 where
