@@ -7,10 +7,12 @@ use tokio::sync::oneshot;
 
 use crate::entry::RaftEntry;
 use crate::log_id::RaftLogId;
+use crate::raft_state::LogStateReader;
 use crate::storage::LogFlushed;
 use crate::storage::RaftLogReaderExt;
 use crate::storage::RaftLogStorage;
 use crate::storage::RaftStateMachine;
+use crate::storage::StorageHelper;
 use crate::testing::StoreBuilder;
 use crate::vote::CommittedLeaderId;
 use crate::AppData;
@@ -58,6 +60,7 @@ where
 
     pub fn test_store(builder: &B) -> Result<(), StorageError<C::NodeId>> {
         run_fut(run_test(builder, Self::get_log_entries))?;
+        run_fut(run_test(builder, Self::get_initial_state_with_state))?;
         Ok(())
     }
 
@@ -79,6 +82,46 @@ where
             assert_eq!(*logs[1].get_log_id(), log_id_0(1, 6));
         }
 
+        Ok(())
+    }
+
+    pub async fn get_initial_state_with_state(
+        mut store: LS,
+        mut sm: SM,
+    ) -> Result<(), StorageError<C::NodeId>> {
+        Self::default_vote(&mut store).await?;
+
+        append(
+            &mut store,
+            [
+                blank_ent_0::<C>(0, 0),
+                blank_ent_0::<C>(1, 1),
+                blank_ent_0::<C>(3, 2),
+            ],
+        )
+        .await?;
+
+        apply(&mut sm, [blank_ent_0::<C>(3, 1)]).await?;
+
+        let initial = StorageHelper::new(&mut store, &mut sm)
+            .get_initial_state()
+            .await?;
+
+        assert_eq!(
+            Some(&log_id_0(3, 2)),
+            initial.last_log_id(),
+            "state machine has higher log"
+        );
+        assert_eq!(
+            initial.committed(),
+            Some(&log_id_0(3, 1)),
+            "unexpected value for last applied log"
+        );
+        assert_eq!(
+            Vote::new(1, NODE_ID.into()),
+            *initial.vote_ref(),
+            "unexpected value for default hard state"
+        );
         Ok(())
     }
 
@@ -147,6 +190,18 @@ where
 {
     let (_g, store, sm) = builder.build().await?;
     test_fn(store, sm).await
+}
+
+/// A wrapper for calling nonblocking `RaftStorage::apply_to_state_machine()`
+async fn apply<C, SM, I>(sm: &mut SM, entries: I) -> Result<(), StorageError<C::NodeId>>
+where
+    C: RaftTypeConfig,
+    SM: RaftStateMachine<C>,
+    I: IntoIterator<Item = C::Entry> + OptionalSend,
+    I::IntoIter: OptionalSend,
+{
+    sm.apply(entries).await?;
+    Ok(())
 }
 
 /// A wrapper for calling nonblocking `RaftStorage::append_to_log()`
