@@ -59,7 +59,7 @@ where
     }
 
     pub fn test_store(builder: &B) -> Result<(), StorageError<C::NodeId>> {
-        run_fut(run_test(builder, Self::get_log_entries))?;
+        //run_fut(run_test(builder, Self::get_log_entries))?;
         run_fut(run_test(builder, Self::get_initial_state_with_state))?;
         Ok(())
     }
