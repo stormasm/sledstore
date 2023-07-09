@@ -38,7 +38,3 @@ So you must comment out the other tests...
 //run_fut(run_test(builder, Self::get_log_entries))?;
 run_fut(run_test(builder, Self::get_initial_state_with_state))?;
 ```
-
-in the same repo
-that gets created automatically as I am using a hard coded db directory on
-disk as opposed to the Temp directory that comes out of the box with openraft.
